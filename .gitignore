@@ -6,6 +6,7 @@ user_settings.json
 # runtime caches
 *_cache.json
 character_pool.json
+gate_rejected.json
 character_gate_cache.json
 character_model_blacklist.json
 body_verdicts.json

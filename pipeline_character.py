@@ -51,8 +51,9 @@ EYE_RENDER_WORKFLOWS = ()
 PROMPT_SELFCHECK_RETRIES = 1
 WEIGHT_FACE = 1.15
 WEIGHT_EXPRESSION = 1.2
-DEFAULT_OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                  "output", "character")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_OUTPUT_DIR = os.path.join(BASE_DIR, "output", "character")
+GATE_REJECT_FILE = os.path.join(BASE_DIR, "gate_rejected.json")
 WORKFLOW_LABELS = {
     "api": "Anima-2.9B（KSampler 工作流）",
     "anima_flow": "Anima-2.9B（AnimaFlow 采样器工作流）",
@@ -1253,17 +1254,32 @@ def cleanup_empty_dir(dir_path):
             pass
 
 
-def _mark_gate_rejected(pool, excluded, cand, name_en, series_en, reason, scope):
-    """把门控拒绝的角色写入本线排除名单，并立即加入本次 excluded。
+def _load_gate_blacklist():
+    """读取独立的门控黑名单；文件损坏时返回空表，不阻塞主流程。"""
+    try:
+        data = load_json(GATE_REJECT_FILE, {})
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
 
+
+def _mark_gate_rejected(blacklist, excluded, cand, name_en, series_en,
+                        reason, scope, workflow=None):
+    """把门控拒绝的角色写入独立持久黑名单。
+
+    与 character_pool.json 完全分离：不占 35 条滚动名额，也不会被自动释放。
     返回 True 表示写入了标记；False 表示没有可用的角色名。
-    只修改传入的 pool/excluded，落盘由调用方负责。
     """
     key = (name_en or cand.get("name") or "").strip()
     if not key:
         return False
 
-    chars = pool.setdefault("characters", [])
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    prev = blacklist.get(key) if isinstance(blacklist.get(key), dict) else {}
+    try:
+        count = int(prev.get("count") or 0) + 1
+    except Exception:
+        count = 1
     rec = {
         "name": (cand.get("name") or key).strip(),
         "name_en": key,
@@ -1271,35 +1287,36 @@ def _mark_gate_rejected(pool, excluded, cand, name_en, series_en, reason, scope)
         "series_en": (series_en or "").strip(),
         "theme": (cand.get("theme") or "").strip(),
         "scope": scope,
+        "workflow": workflow or "",
         "status": "gate_rejected",
         "gate_reason": str(reason or "")[:500],
-        "rejected_at": datetime.datetime.now().isoformat(timespec="seconds"),
+        "first_rejected_at": prev.get("first_rejected_at") or now,
+        "rejected_at": now,
+        "count": count,
     }
-
-    old = next((c for c in chars
-                if c.get("name_en") == key
-                and c.get("scope") in (None, "", scope)), None)
-    if old is None:
-        chars.append(rec)
-        print(f"  [门控拉黑] {key} 加入本线({scope})排除名单"
-              f"：{str(reason or '')[:90]}")
-    else:
-        old.update(rec)
-        print(f"  [门控拉黑] {key} 已在本线({scope})名单内，更新拒绝标记"
-              f"：{str(reason or '')[:90]}")
-
+    blacklist[key] = rec
     if key not in excluded:
         excluded.append(key)
+    print(f"  [门控拉黑] {key} 写入独立黑名单（累计 {count} 次）"
+          f"：{str(reason or '')[:90]}")
+    return True
 
-    # 保持本线池大小；只淘汰本线最老的记录。
-    same = [i for i, c in enumerate(chars)
-            if c.get("scope") in (None, "", scope)]
-    while len(same) > POOL_SIZE:
-        removed = chars.pop(same[0])
-        print(f"  [门控名单释放] {removed.get('name_en', '?')}"
-              f"（本线超过 {POOL_SIZE} 条）")
-        same = [i for i, c in enumerate(chars)
-                if c.get("scope") in (None, "", scope)]
+
+def _migrate_legacy_gate_rejects(pool, blacklist, excluded, scope):
+    """把旧版写在 character_pool.json 里的 gate_rejected 记录迁到独立黑名单。"""
+    legacy = [c for c in pool.get("characters", [])
+              if isinstance(c, dict) and c.get("status") == "gate_rejected"]
+    if not legacy:
+        return False
+    for c in legacy:
+        _mark_gate_rejected(
+            blacklist, excluded, c, c.get("name_en"), c.get("series_en"),
+            c.get("gate_reason") or "legacy gate rejection",
+            c.get("scope") or scope, c.get("workflow"))
+        try:
+            pool["characters"].remove(c)
+        except ValueError:
+            pass
     return True
 
 
@@ -1395,7 +1412,8 @@ def main():
         return
 
     pool = load_json(POOL_FILE, {"characters": []})
-    # 2026-10-14 用户要求：**禁用名单按线路作用域分离，互不干扰**
+    gate_blacklist = _load_gate_blacklist()
+    # 2026-10-14 用户要求：**已用角色名单按线路作用域分离，互不干扰**
     #   "artist"    → 有画师线路（api / anima_flow）各用一份 35 人名单
     #   "no_artist" → 无画师线路（animagine_xl / nova_xl）各用一份
     #   同一人物若只在"无画师"名单里，那么在 Anima 有画师线上**仍可被选中** ✓
@@ -1404,8 +1422,24 @@ def main():
     excluded = [c.get("name_en", c.get("name", "")) for c in pool["characters"]
                 if c.get("scope") in (None, "", _scope_now)]
     excluded = [x for x in excluded if x]
+
+    # 旧版把 gate_rejected 写在 character_pool.json 里；迁移到独立黑名单，
+    # 避免它继续占用 35 条滚动名额、或在轮换时被释放。
+    if _migrate_legacy_gate_rejects(pool, gate_blacklist, excluded, _scope_now):
+        try:
+            save_json(POOL_FILE, pool)
+            save_json(GATE_REJECT_FILE, gate_blacklist)
+            print("[门控黑名单] 已迁移旧版 gate_rejected 记录")
+        except Exception as _e_mig:
+            print(f"[门控黑名单] 迁移落盘失败：{type(_e_mig).__name__}")
+
+    for _bk in gate_blacklist:
+        if _bk not in excluded:
+            excluded.append(_bk)
+
     print(f"[禁用名单] 本线作用域={_scope_now}｜本线排除 {len(excluded)} 个"
-          f"（名单合计 {len(pool['characters'])}/{POOL_SIZE}）")
+          f"（已用角色池 {len(pool['characters'])}/{POOL_SIZE}，"
+          f"独立门控黑名单 {len(gate_blacklist)} 个）")
     print(f"[联网搜索] {'启用' if WEB_SEARCH_ENABLED else '关闭'}"
           f"（本地 function tool，引擎={'/'.join(available_engines())}，"
           f"最多 {WEB_SEARCH_MAX_ROUNDS} 轮，每次 {WEB_SEARCH_MAX_RESULTS} 条）")
@@ -1576,13 +1610,14 @@ def main():
             # 门控拒绝：立刻标记到本线排除名单，并写入本次 excluded。
             # 下一轮 ask_ai_character 会明确避开；模型若仍返回同一人，
             # 上面的 excluded 检查会直接换人，不再重复消耗门控调用。
-            if _mark_gate_rejected(pool, excluded, cand, name_en_try,
-                                   series_en_try, why, _scope_now):
+            if _mark_gate_rejected(gate_blacklist, excluded, cand, name_en_try,
+                                   series_en_try, why, _scope_now,
+                                   workflow=workflow):
                 try:
-                    save_json(POOL_FILE, pool)
-                    print("  [门控拉黑] 已写入 character_pool.json")
+                    save_json(GATE_REJECT_FILE, gate_blacklist)
+                    print("  [门控拉黑] 已写入 gate_rejected.json（独立持久）")
                 except Exception as _e_pool:
-                    print(f"  [门控拉黑] 写名单失败：{type(_e_pool).__name__}")
+                    print(f"  [门控拉黑] 写黑名单失败：{type(_e_pool).__name__}")
 
         if char_info:
             break

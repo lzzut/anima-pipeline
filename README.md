@@ -301,17 +301,23 @@ ComfyUI 生成 N 张候选
 
 当 `accepts()` 打回一个角色时：
 
-1. 立即把该角色写入 `character_pool.json`，记录：
+1. 立即把该角色写入**独立持久黑名单** `gate_rejected.json`，记录：
    - `status: "gate_rejected"`
    - `gate_reason`：拒绝原因
    - `scope`：`artist` / `no_artist`
-   - `rejected_at`：拒绝时间
+   - `workflow`：拒绝时使用的线路
+   - `first_rejected_at` / `rejected_at`：首次/最近拒绝时间
+   - `count`：累计被拒次数
 2. 同时把角色加入本次运行的 `excluded` 列表。
 3. 下一轮 `ask_ai_character()` 会明确避开该角色，重新生成一个新人物。
 4. 如果模型仍返回已排除角色，不再重复调用门控，直接判定为重复并继续换人。
-5. 本线排除名单最多保留 `POOL_SIZE`（默认 35）条；超出后释放本线最老的一条。
+5. 黑名单**不占** `character_pool.json` 的 35 条滚动名额，**不会自动释放**。
 
-`character_pool.json` 是运行时文件，已在 `.gitignore` 中排除，不会提交到仓库。
+`character_pool.json` 仍然只记录已通过门控、准备出图的角色；`gate_rejected.json` 独立保存门控拒绝记录。两个文件都在 `.gitignore` 中，不会提交。
+
+旧版如果曾把 `gate_rejected` 写进 `character_pool.json`，启动时会自动迁移到独立黑名单。
+
+如需重新允许某个被拒角色，手动从 `gate_rejected.json` 删除对应条目，或删除整个文件。
 
 ---
 
