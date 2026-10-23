@@ -8,6 +8,29 @@
 
 ---
 
+## 快速开始
+
+三条最常用的命令：
+
+```powershell
+python smoke_test.py                 # 只验证本地出图，不需要 DeepSeek key
+python pipeline_character.py         # 完整自动链路，需要 DeepSeek key
+python custom_entry.py               # 手工指定角色，需要 DeepSeek key + ComfyUI
+```
+
+手工入口还有两种不消耗 API 的辅助用法：
+
+```powershell
+python custom_entry.py --list        # 只列出模型/采样器/画师组合
+python custom_entry.py --dry-run     # 只走菜单，不调用 API、不出图
+```
+
+手工入口的完整交互说明（输入顺序、字段含义、示例、输出位置）：
+
+**[docs/CUSTOM_ENTRY.md](docs/CUSTOM_ENTRY.md)**
+
+---
+
 ## 样图
 
 ### 采样器组合对比
@@ -69,7 +92,9 @@ anima-pipeline/
 │  ├─ artist_combos.json
 │  ├─ character_debut_years.json
 │  └─ danbooru_tags.csv
-├─ docs/samples/
+├─ docs/
+│  ├─ CUSTOM_ENTRY.md      # 手工入口完整说明
+│  └─ samples/
 └─ requirements.txt
 ```
 
@@ -171,6 +196,8 @@ python pipeline_character.py
 流程：DeepSeek 选角 → 门控 → 提示词 → ComfyUI 出图 → 选优。
 
 ### 3. 手工指定角色/采样器/画师组合
+
+> 完整逐步说明已单独整理：[docs/CUSTOM_ENTRY.md](docs/CUSTOM_ENTRY.md)
 
 手工入口**不经过自动选角和角色门控**：你直接给角色标签，适合已经知道要画谁、只想换采样器或画师组合的情况。模型不认识该角色时，仍可能出现通用脸。
 
