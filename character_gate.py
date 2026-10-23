@@ -100,7 +100,7 @@ DATE_RE = re.compile(
     r"(19[7-9]\d|20[0-4]\d)\s*[年\-/.]\s*(\d{1,2})(?:\s*[月\-/.]\s*(\d{1,2}))?")
 # 年份语境词：放宽（实测摘要里更常见"公测/开服/开播/发售"这类说法）
 DEBUT_HINTS = (
-    "初登场", "首次登场", "初次登场", "登场", "上线", "发布", "发行", "推出",
+    "初登场", "首次登场", "初次登场", "登场", "上线", "发行", "推出",
     "公开", "开服", "公测", "发售", "上市", "开播", "首播", "放送", "面世",
     "出道", "开测", "内测", "首发",
     "debut", "released", "launched", "introduced", "first appeared",
@@ -232,7 +232,7 @@ def series_profile(series_en):
 # 联网查角色（时间限制 / 作品限制）
 # ===========================================================================
 def _extract_year(text):
-    """从一段文字里抽"出道/发布"语境下的最早年份"""
+    """从一段文字里抽"出道/发行"语境下的最早年份"""
     if not text:
         return None
     low = text.lower()
@@ -268,7 +268,7 @@ def _extract_date(text):
 
 def _web_years(queries, key, must_mention=None):
     """
-    跑一组联网查询，从摘要里抽"发布语境下的最早年份"，结果缓存。
+    跑一组联网查询，从摘要里抽"发行语境下的最早年份"，结果缓存。
 
     重要（实测教训）：本机搜索摘要不可信 ——
       · 查"原神 发行日期"返回官网 2026 版本日期（会把老游戏误判成新作）
@@ -356,7 +356,7 @@ def web_character_info(name_en, series_en=None, name_cn=None, series_cn=None):
     series = (series_cn or re.sub(r"[_()]", " ", series_en or "")).strip()
     info = _web_years(
         [f"{plain} {series} 角色 初登场 年份 百科".strip(),
-         f"{plain} 首次登场 发布时间 百科".strip()],
+         f"{plain} 首次登场 上线时间 发行时间 百科".strip()],
         key=f"web|{(name_en or '').lower()}|{(series_en or '').lower()}",
         must_mention=plain,
     )
