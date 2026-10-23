@@ -139,7 +139,7 @@ def run_tag(workflow, anchor=None, sampler=None, scheduler=None):
 #   · 选中 workflow_api.json → 再从 config.KSAMPLER_COMBOS 随机抽一套采样器组合
 #     （Euler+sgm_uniform、er_sde+beta57、res_multistep+linear_quadratic 等，
 #      每套带自己的推荐步数/CFG）
-#   · 选中 anima_flow      → 官方默认档 flow_euler + diffusers_linear_shift + cfg5 + 30步
+#   · 选中 anima_flow      → flow_euler + diffusers_linear_shift + cfg5 + 50步（项目统一）
 #   · 选中 animagine_xl    → Animagine XL 4.0 官方卡参数（28步/cfg5/euler_a，质量词放末尾）
 #   · 选中 nova_xl         → Illustrious 系惯例（28步/cfg5/euler_a）
 #
@@ -851,7 +851,7 @@ def generate_images(prompt_list, output_dir,
 
     workflow: "api" / "anima_flow"，传 None 则二选一随机。
               - api          : KSampler，采样器组合从 KSAMPLER_COMBOS 随机抽（每套自带步数/CFG）
-              - anima_flow   : AnimaFlowCorrectiveSampler（官方默认档，cfg5/30步）
+              - anima_flow   : AnimaFlowCorrectiveSampler（cfg5/50步，项目统一）
     steps/cfg: 显式传入则覆盖该工作流的默认值。
     """
     os.makedirs(output_dir, exist_ok=True)

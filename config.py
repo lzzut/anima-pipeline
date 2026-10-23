@@ -41,13 +41,13 @@ WORKFLOW_SETTINGS = {
     "api": {
         "path": WORKFLOW_PATH,
         "unet": ANIMA_UNET,
-        "steps": 30,
+        "steps": 50,
         "cfg": 5.0,
     },
     "anima_flow": {
         "path": WORKFLOW_ANIMA_FLOW_PATH,
         "unet": ANIMA_UNET,
-        "steps": 30,
+        "steps": 50,
         "cfg": 5.0,
     },
 }
@@ -1691,7 +1691,7 @@ KSAMPLER_COMBOS = [
 # ---------------------------------------------------------------------------
 # anima_flow 工作流的采样器参数（官方默认档）
 #   原配置 pc3_damped + rf_linear_shift + shift3 + cfg3.7 + 50步 实测 355.8s/张；
-#   换成官方默认 flow_euler + diffusers_linear_shift + shift3 + cfg5 + 30步 → 116.3s/张，
+#   项目统一 flow_euler + diffusers_linear_shift + shift3 + cfg5 + 50步（官方默认 30步），
 #   画质肉眼相当（见 output\_bench\second 对照图）。
 # ---------------------------------------------------------------------------
 ANIMA_FLOW_SETTINGS = {
