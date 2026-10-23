@@ -60,6 +60,7 @@ anima-pipeline/
 ├─ prompt_style.py           # 提示词风格补充
 ├─ pool_manager.py           # 角色池与 JSON 解析
 ├─ ensure_comfyui.py         # ComfyUI 健康检查/可选自动拉起
+├─ smoke_test.py             # 不依赖 DeepSeek 的最小出图验证
 ├─ artist_matrix_test.py     # 仅保留 _slug / _replace_artist 两个工具函数
 ├─ workflow_api.json         # Anima KSampler 线路
 ├─ workflow_anima_flow.json  # AnimaFlow 线路
@@ -90,17 +91,26 @@ ComfyUI/models/vae/Anime_2.9B_vae(qwen_vae1).safetensors
 - `api` 线路只依赖 ComfyUI 原生节点。
 - `anima_flow` 线路依赖提供 `AnimaFlowCorrectiveSampler` 节点的 ComfyUI 扩展；未安装时请只使用 `api` 线路，或把 `WORKFLOW_POOL` 改为 `["api"]`。
 - 本地美学评分是可选项：`comfy_runner.py` 会尝试加载 `kawaimasa/kawai-aesthetic-scorer-convnextv2`。未安装 `transformers` / 本地没有缓存时，评分失败会退化为 0 分，不影响出图。
+- 公开版主要在 Windows 上验证。`ensure_comfyui.py` 的自动拉起/停止使用 Windows 进程命令；Linux/macOS 建议手动启动 ComfyUI，只使用健康检查。
 
 ---
 
 ## 安装
 
+如果已经拿到项目目录：
+
 ```powershell
-git clone <your-fork-or-mirror-url>
 cd anima-pipeline
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+如果从远端克隆，把 `<repo-url>` 换成实际地址：
+
+```powershell
+git clone <repo-url>
+cd anima-pipeline
 ```
 
 可选（本地美学评分）：
@@ -108,6 +118,8 @@ pip install -r requirements.txt
 ```powershell
 pip install transformers torch
 ```
+
+注意：`comfy_runner.py` 在导入时设置了 `HF_HUB_OFFLINE=1` / `TRANSFORMERS_OFFLINE=1`，所以评分模型需要在离线前已经缓存到本机。没有缓存时评分会失败并退化为 0 分，不影响出图。
 
 ---
 
@@ -132,15 +144,33 @@ python ensure_comfyui.py --status
 
 ---
 
-## 启动
+## 启动与使用方案
 
-主链：
+公开版有三种用法，按“先验证、再完整运行”的顺序使用。
+
+### 1. 最小验证：只测本地出图（无需 DeepSeek）
+
+```powershell
+python smoke_test.py
+```
+
+它会用 `workflow_api.json` 生成一张 8 步测试图，验证 ComfyUI、UNet、CLIP、VAE 和 workflow 是否正常。成功输出类似：
+
+```text
+[smoke] OK: .../output/smoke/smoke.png (1024x1536, ... bytes)
+```
+
+如果这一步失败，先不要运行主链，按报错检查 ComfyUI 是否启动、模型文件名是否与 `config.py` 一致。
+
+### 2. 完整自动链路（需要 DeepSeek API key）
 
 ```powershell
 python pipeline_character.py
 ```
 
-手工入口：
+流程：DeepSeek 选角 → 门控 → 提示词 → ComfyUI 出图 → 选优。
+
+### 3. 手工指定角色/采样器/画师组合
 
 ```powershell
 python custom_entry.py
@@ -148,10 +178,14 @@ python custom_entry.py --list
 python custom_entry.py --dry-run
 ```
 
+`--list` 只列出可选项；`--dry-run` 走完菜单但不实际出图、不调用 DeepSeek。
+
 输出默认写入：
 
 ```text
-output/character/<YYYY-MM-DD>/
+output/character/<YYYY-MM-DD>/     # 主链
+output/_custom_entry/<YYYY-MM-DD>/ # 手工入口
+output/smoke/smoke.png             # 最小验证
 ```
 
 ---
