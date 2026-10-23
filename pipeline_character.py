@@ -1263,9 +1263,44 @@ def _load_gate_blacklist():
         return {}
 
 
+def _is_gate_record(v):
+    return isinstance(v, dict) and any(
+        k in v for k in ("status", "name_en", "gate_reason", "rejected_at"))
+
+
+def _normalize_gate_blacklist(raw, default_model):
+    """把黑名单统一成 {model_key: {name_en: record}}。
+
+    旧版是扁平格式 {name_en: record}；新版按模型分组。旧记录如果带
+    workflow 就按其 model_key 迁移，否则归到当前模型。返回 (数据, 是否迁移)。
+    """
+    if not raw:
+        return {}, False
+    if any(_is_gate_record(v) for v in raw.values()):
+        out = {}
+        for key, rec in raw.items():
+            if not _is_gate_record(rec):
+                continue
+            rec = dict(rec)
+            wf = str(rec.get("workflow") or "").strip()
+            mk = str(rec.get("model_key") or
+                     (_cfg.model_key(wf) if wf else default_model))
+            rec["model_key"] = mk
+            out.setdefault(mk, {})[key] = rec
+        return out, True
+    out = {k: v for k, v in raw.items() if isinstance(v, dict)}
+    return out, out != raw
+
+
+def _gate_entries(blacklist, model_key):
+    d = blacklist.get(model_key) if isinstance(blacklist, dict) else None
+    return d if isinstance(d, dict) else {}
+
+
 def _mark_gate_rejected(blacklist, excluded, cand, name_en, series_en,
-                        reason, scope, workflow=None):
-    """把门控拒绝的角色写入独立持久黑名单。
+                        reason, scope, model_key, workflow=None,
+                        include_in_excluded=True):
+    """把门控拒绝的角色写入指定模型的独立持久黑名单。
 
     与 character_pool.json 完全分离：不占 35 条滚动名额，也不会被自动释放。
     返回 True 表示写入了标记；False 表示没有可用的角色名。
@@ -1274,8 +1309,13 @@ def _mark_gate_rejected(blacklist, excluded, cand, name_en, series_en,
     if not key:
         return False
 
+    model_bl = blacklist.setdefault(model_key, {})
+    if not isinstance(model_bl, dict):
+        model_bl = {}
+        blacklist[model_key] = model_bl
+
     now = datetime.datetime.now().isoformat(timespec="seconds")
-    prev = blacklist.get(key) if isinstance(blacklist.get(key), dict) else {}
+    prev = model_bl.get(key) if isinstance(model_bl.get(key), dict) else {}
     try:
         count = int(prev.get("count") or 0) + 1
     except Exception:
@@ -1288,31 +1328,42 @@ def _mark_gate_rejected(blacklist, excluded, cand, name_en, series_en,
         "theme": (cand.get("theme") or "").strip(),
         "scope": scope,
         "workflow": workflow or "",
+        "model_key": model_key,
         "status": "gate_rejected",
         "gate_reason": str(reason or "")[:500],
         "first_rejected_at": prev.get("first_rejected_at") or now,
         "rejected_at": now,
         "count": count,
     }
-    blacklist[key] = rec
-    if key not in excluded:
+    model_bl[key] = rec
+    if include_in_excluded and key not in excluded:
         excluded.append(key)
-    print(f"  [门控拉黑] {key} 写入独立黑名单（累计 {count} 次）"
-          f"：{str(reason or '')[:90]}")
+    print(f"  [门控拉黑] {key} 写入模型 {model_key} 的独立黑名单"
+          f"（累计 {count} 次）：{str(reason or '')[:90]}")
     return True
 
 
-def _migrate_legacy_gate_rejects(pool, blacklist, excluded, scope):
+def _migrate_legacy_gate_rejects(pool, blacklist, excluded, scope, default_model):
     """把旧版写在 character_pool.json 里的 gate_rejected 记录迁到独立黑名单。"""
     legacy = [c for c in pool.get("characters", [])
               if isinstance(c, dict) and c.get("status") == "gate_rejected"]
     if not legacy:
         return False
     for c in legacy:
+        wf = str(c.get("workflow") or "").strip()
+        mk = str(c.get("model_key") or
+                 (_cfg.model_key(wf) if wf else default_model))
+        include = (mk == default_model)
         _mark_gate_rejected(
             blacklist, excluded, c, c.get("name_en"), c.get("series_en"),
             c.get("gate_reason") or "legacy gate rejection",
-            c.get("scope") or scope, c.get("workflow"))
+            c.get("scope") or scope, mk, c.get("workflow"),
+            include_in_excluded=include)
+        if not include:
+            try:
+                excluded.remove(c.get("name_en"))
+            except (ValueError, TypeError):
+                pass
         try:
             pool["characters"].remove(c)
         except ValueError:
@@ -1412,7 +1463,9 @@ def main():
         return
 
     pool = load_json(POOL_FILE, {"characters": []})
-    gate_blacklist = _load_gate_blacklist()
+    _mk_now = _cfg.model_key(workflow)
+    _raw_gate = _load_gate_blacklist()
+    gate_blacklist, _gate_migrated = _normalize_gate_blacklist(_raw_gate, _mk_now)
     # 2026-10-14 用户要求：**已用角色名单按线路作用域分离，互不干扰**
     #   "artist"    → 有画师线路（api / anima_flow）各用一份 35 人名单
     #   "no_artist" → 无画师线路（animagine_xl / nova_xl）各用一份
@@ -1425,21 +1478,26 @@ def main():
 
     # 旧版把 gate_rejected 写在 character_pool.json 里；迁移到独立黑名单，
     # 避免它继续占用 35 条滚动名额、或在轮换时被释放。
-    if _migrate_legacy_gate_rejects(pool, gate_blacklist, excluded, _scope_now):
+    _pool_migrated = _migrate_legacy_gate_rejects(
+        pool, gate_blacklist, excluded, _scope_now, _mk_now)
+    if _pool_migrated or _gate_migrated:
         try:
-            save_json(POOL_FILE, pool)
+            if _pool_migrated:
+                save_json(POOL_FILE, pool)
             save_json(GATE_REJECT_FILE, gate_blacklist)
-            print("[门控黑名单] 已迁移旧版 gate_rejected 记录")
+            print("[门控黑名单] 已迁移旧格式记录到按模型分组")
         except Exception as _e_mig:
             print(f"[门控黑名单] 迁移落盘失败：{type(_e_mig).__name__}")
 
-    for _bk in gate_blacklist:
+    _model_gate = _gate_entries(gate_blacklist, _mk_now)
+    for _bk in _model_gate:
         if _bk not in excluded:
             excluded.append(_bk)
 
     print(f"[禁用名单] 本线作用域={_scope_now}｜本线排除 {len(excluded)} 个"
           f"（已用角色池 {len(pool['characters'])}/{POOL_SIZE}，"
-          f"独立门控黑名单 {len(gate_blacklist)} 个）")
+          f"模型 {_mk_now} 门控黑名单 {len(_model_gate)} 个，"
+          f"共 {len(gate_blacklist)} 个模型）")
     print(f"[联网搜索] {'启用' if WEB_SEARCH_ENABLED else '关闭'}"
           f"（本地 function tool，引擎={'/'.join(available_engines())}，"
           f"最多 {WEB_SEARCH_MAX_ROUNDS} 轮，每次 {WEB_SEARCH_MAX_RESULTS} 条）")
@@ -1612,10 +1670,11 @@ def main():
             # 上面的 excluded 检查会直接换人，不再重复消耗门控调用。
             if _mark_gate_rejected(gate_blacklist, excluded, cand, name_en_try,
                                    series_en_try, why, _scope_now,
-                                   workflow=workflow):
+                                   _cfg.model_key(workflow), workflow=workflow):
                 try:
                     save_json(GATE_REJECT_FILE, gate_blacklist)
-                    print("  [门控拉黑] 已写入 gate_rejected.json（独立持久）")
+                    print("  [门控拉黑] 已写入 gate_rejected.json"
+                          "（按模型隔离、独立持久）")
                 except Exception as _e_pool:
                     print(f"  [门控拉黑] 写黑名单失败：{type(_e_pool).__name__}")
 
