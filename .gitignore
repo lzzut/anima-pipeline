@@ -1,0 +1,38 @@
+# credentials / local settings
+.env
+*.key
+user_settings.json
+
+# runtime caches
+*_cache.json
+character_pool.json
+character_gate_cache.json
+character_model_blacklist.json
+body_verdicts.json
+identity_verdicts.json
+generation_index.json
+*_verdicts.json
+comfyui.pid
+
+# generated output
+output/
+logs/
+*.log
+
+# model weights / LoRA
+models/
+loras/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
