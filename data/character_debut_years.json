@@ -1,0 +1,102 @@
+{
+ "raiden_shogun_(genshin_impact)": {
+  "year": 2021,
+  "source": "batch-preset"
+ },
+ "furina_(genshin_impact)": {
+  "year": 2023,
+  "source": "llm"
+ },
+ "hatsune_miku": {
+  "year": 2007,
+  "source": "llm"
+ },
+ "march_7th_(honkai:_star_rail)": {
+  "year": 2023,
+  "source": "llm"
+ },
+ "hu_tao_(genshin_impact)": {
+  "year": 2021,
+  "source": "llm"
+ },
+ "raiden_shogun": {
+  "year": 2021,
+  "source": "llm"
+ },
+ "keqing_(genshin_impact)": {
+  "year": 2020,
+  "source": "llm"
+ },
+ "yae_miko_(genshin_impact)": {
+  "year": 2022,
+  "source": "llm"
+ },
+ "yor_forger": {
+  "year": 2022,
+  "source": "test-preset"
+ },
+ "yor_briar": {
+  "year": 2022,
+  "source": "llm"
+ },
+ "nishikigi_chisato": {
+  "year": 2022,
+  "source": "llm"
+ },
+ "nahida_(genshin_impact)": {
+  "year": 2022,
+  "source": "llm"
+ },
+ "bailu_(honkai:_star_rail)": {
+  "year": 2023,
+  "source": "llm"
+ },
+ "sigewinne_(genshin_impact)": {
+  "year": 2024,
+  "source": "llm"
+ },
+ "arima_kana": {
+  "year": 2023,
+  "source": "llm"
+ },
+ "silver_wolf_(honkai:_star_rail)": {
+  "year": 2022,
+  "source": "web",
+  "date": "2022-05-28"
+ },
+ "fu_xuan_(honkai:_star_rail)": {
+  "year": 2023,
+  "source": "web",
+  "date": "2023-03-13"
+ },
+ "jingliu_(honkai:_star_rail)": {
+  "year": 2023,
+  "source": "web",
+  "date": "2023-05-11"
+ },
+ "elysia_(honkai_impact)": {
+  "year": 2021,
+  "source": "web",
+  "date": "2021-08-20"
+ },
+ "kafka_(honkai:_star_rail)": {
+  "year": 2022,
+  "source": "web",
+  "date": "2022-05-11"
+ },
+ "seele_(honkai:_star_rail)": {
+  "year": 2021,
+  "source": "web",
+  "date": "2021-10-08"
+ },
+ "robin_(honkai:_star_rail)": {
+  "year": 2024,
+  "source": "web",
+  "date": "2024-01-26"
+ },
+ "sparkle_(honkai:_star_rail)": {
+  "year": 2024,
+  "source": "web",
+  "date": "2024-01-01"
+ }
+}
