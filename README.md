@@ -297,6 +297,22 @@ ComfyUI 生成 N 张候选
 
 门控失败会重选角色或换线路；不会为了凑数跳过门控。
 
+### 门控拒绝后的处理
+
+当 `accepts()` 打回一个角色时：
+
+1. 立即把该角色写入 `character_pool.json`，记录：
+   - `status: "gate_rejected"`
+   - `gate_reason`：拒绝原因
+   - `scope`：`artist` / `no_artist`
+   - `rejected_at`：拒绝时间
+2. 同时把角色加入本次运行的 `excluded` 列表。
+3. 下一轮 `ask_ai_character()` 会明确避开该角色，重新生成一个新人物。
+4. 如果模型仍返回已排除角色，不再重复调用门控，直接判定为重复并继续换人。
+5. 本线排除名单最多保留 `POOL_SIZE`（默认 35）条；超出后释放本线最老的一条。
+
+`character_pool.json` 是运行时文件，已在 `.gitignore` 中排除，不会提交到仓库。
+
 ---
 
 ## 提示词结构

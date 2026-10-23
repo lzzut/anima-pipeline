@@ -1253,6 +1253,56 @@ def cleanup_empty_dir(dir_path):
             pass
 
 
+def _mark_gate_rejected(pool, excluded, cand, name_en, series_en, reason, scope):
+    """把门控拒绝的角色写入本线排除名单，并立即加入本次 excluded。
+
+    返回 True 表示写入了标记；False 表示没有可用的角色名。
+    只修改传入的 pool/excluded，落盘由调用方负责。
+    """
+    key = (name_en or cand.get("name") or "").strip()
+    if not key:
+        return False
+
+    chars = pool.setdefault("characters", [])
+    rec = {
+        "name": (cand.get("name") or key).strip(),
+        "name_en": key,
+        "series": (cand.get("series") or series_en or "").strip(),
+        "series_en": (series_en or "").strip(),
+        "theme": (cand.get("theme") or "").strip(),
+        "scope": scope,
+        "status": "gate_rejected",
+        "gate_reason": str(reason or "")[:500],
+        "rejected_at": datetime.datetime.now().isoformat(timespec="seconds"),
+    }
+
+    old = next((c for c in chars
+                if c.get("name_en") == key
+                and c.get("scope") in (None, "", scope)), None)
+    if old is None:
+        chars.append(rec)
+        print(f"  [门控拉黑] {key} 加入本线({scope})排除名单"
+              f"：{str(reason or '')[:90]}")
+    else:
+        old.update(rec)
+        print(f"  [门控拉黑] {key} 已在本线({scope})名单内，更新拒绝标记"
+              f"：{str(reason or '')[:90]}")
+
+    if key not in excluded:
+        excluded.append(key)
+
+    # 保持本线池大小；只淘汰本线最老的记录。
+    same = [i for i, c in enumerate(chars)
+            if c.get("scope") in (None, "", scope)]
+    while len(same) > POOL_SIZE:
+        removed = chars.pop(same[0])
+        print(f"  [门控名单释放] {removed.get('name_en', '?')}"
+              f"（本线超过 {POOL_SIZE} 条）")
+        same = [i for i, c in enumerate(chars)
+                if c.get("scope") in (None, "", scope)]
+    return True
+
+
 def main():
     today = datetime.date.today().isoformat()
     out_dir = os.path.join(DEFAULT_OUTPUT_DIR, today)
@@ -1420,11 +1470,15 @@ def main():
             #   这里用"候选自带主题"；取不到就传 None（跳过体型判据，不影响其它门控）
             _t_gate = str(cand.get("theme") or "").strip() or None
             _llm_debut = cand.get("debut_date") or cand.get("debut_year")
-            ok, why = accepts(workflow, name_en_try, series_en_try,
-                              name_cn=(cand.get("name") or "").strip(),
-                              series_cn=(cand.get("series") or "").strip(),
-                              theme=_t_gate,          # 方案B：体型×暴露主题 组合判定需要主题
-                              llm_debut=_llm_debut)   # 2026-10-21：LLM 日期兜底
+            if name_en_try and name_en_try in excluded:
+                ok, why = False, (f"{name_en_try} 已在本线排除名单"
+                                  f"（跳过重复门控，直接换人）")
+            else:
+                ok, why = accepts(workflow, name_en_try, series_en_try,
+                                  name_cn=(cand.get("name") or "").strip(),
+                                  series_cn=(cand.get("series") or "").strip(),
+                                  theme=_t_gate,        # 方案B：体型×暴露主题 组合判定需要主题
+                                  llm_debut=_llm_debut)  # 2026-10-21：LLM 日期兜底
             # 角色 × 模型 黑名单（2026-10-12）：该角色在此模型上反复不达标 → 直接打回换人
             if ok and comfy_runner.char_blacklisted(_cfg.model_key(workflow), name_en_try):
                 ok = False
@@ -1519,6 +1573,16 @@ def main():
                          "series": (cand.get("series") or "").strip(),
                          "debut_date": cand.get("debut_date"),
                          "debut_year": cand.get("debut_year")}
+            # 门控拒绝：立刻标记到本线排除名单，并写入本次 excluded。
+            # 下一轮 ask_ai_character 会明确避开；模型若仍返回同一人，
+            # 上面的 excluded 检查会直接换人，不再重复消耗门控调用。
+            if _mark_gate_rejected(pool, excluded, cand, name_en_try,
+                                   series_en_try, why, _scope_now):
+                try:
+                    save_json(POOL_FILE, pool)
+                    print("  [门控拉黑] 已写入 character_pool.json")
+                except Exception as _e_pool:
+                    print(f"  [门控拉黑] 写名单失败：{type(_e_pool).__name__}")
 
         if char_info:
             break
