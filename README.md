@@ -172,15 +172,73 @@ python pipeline_character.py
 
 ### 3. 手工指定角色/采样器/画师组合
 
+手工入口**不经过自动选角和角色门控**：你直接给角色标签，适合已经知道要画谁、只想换采样器或画师组合的情况。模型不认识该角色时，仍可能出现通用脸。
+
+建议按“看选项 → 演练 → 实际出图”三步使用。
+
+#### 3.1 先看有哪些选项（不需要 DeepSeek key）
+
 ```powershell
-python custom_entry.py
 python custom_entry.py --list
+```
+
+只打印可选模型、4 组采样器和 27 组画师组合，然后退出。不调用 DeepSeek，不启动 ComfyUI，不出图。
+
+#### 3.2 演练一遍输入（不需要 DeepSeek key）
+
+```powershell
 python custom_entry.py --dry-run
 ```
 
-`--list` 只列出可选项；`--dry-run` 走完菜单但不实际出图、不调用 DeepSeek。
+会完整走一遍菜单，最后打印本次模型、角色、主题、景别和采样器，但**不调用 DeepSeek、不启动 ComfyUI、不写图片**。
 
-输出默认写入：
+#### 3.3 实际出图（需要 DeepSeek key + ComfyUI）
+
+```powershell
+python custom_entry.py
+```
+
+交互顺序固定如下：
+
+```text
+选择模型编号：1
+  1 = Anima-2.9B api
+  2 = Anima-2.9B anima-flow
+  9 = 修改 ComfyUI 路径（保存到 user_settings.json）
+  q = 退出
+
+选择采样器组合编号（默认 1）：1
+  1 = euler + sgm_uniform
+  2 = res_multistep + linear_quadratic
+  3 = er_sde + beta57
+  4 = uni_pc + ddim_uniform
+
+选择画师组合编号（0=不加画师，默认 0）：0
+  0 = 不注入画师串
+  1~27 = 对应组合
+
+人物中文名：初音未来
+作品中文名：Vocaloid
+人物英文标签（如 furina_(genshin_impact)）：hatsune_miku
+作品英文标签（如 genshin_impact）：vocaloid
+主题（默认 四季常装）：四季常装
+景别（默认 cowboy shot）：cowboy shot
+seed（默认 20261022）：20261024
+```
+
+英文标签建议直接使用 Danbooru 标签；带歧义的角色用 `角色_(作品)` 写法。`景别` 可填：
+
+- `cowboy shot`：七分身/膝上
+- `full body`：全身
+
+成功后输出一张图：
+
+```text
+output/_custom_entry/<YYYY-MM-DD>/<角色>_<主题>.png
+output/_custom_entry/<YYYY-MM-DD>/last_entry.json
+```
+
+全部输出位置：
 
 ```text
 output/character/<YYYY-MM-DD>/     # 主链
