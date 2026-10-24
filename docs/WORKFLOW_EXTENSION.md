@@ -1,7 +1,10 @@
 # 添加自定义工作流（API / KSampler）
 
-公开版允许把符合约定节点结构的 ComfyUI **API 格式工作流**加入 `WORKFLOW_POOL`。  
-这里说的“可用”，不是把 JSON 丢进目录就自动扫描；还需要在 `config.py` 注册三项：工作流设置、模型档案、工作流池。
+公开版允许把符合约定节点结构的 ComfyUI **API 格式工作流**加入 `WORKFLOW_POOL`。
+
+> **关键：只把 workflow JSON 放进目录，不会自动生效。**  
+> 还需要在 `config.py` 注册三项：工作流设置、模型档案、工作流池。  
+> `custom_entry.py` 会列出已注册的工作流，但它也不会自动扫描目录。
 
 ---
 
@@ -36,6 +39,11 @@ WORKFLOW_SETTINGS["my_model"] = {
     "sampler": "euler",
     "scheduler": "normal",
     "prompt_profile": "generic",
+    # 可选：给 custom_entry.py 提供多组采样器选择
+    "sampler_combos": [
+        ("euler", "normal", 30, 5.0, "默认"),
+        ("dpmpp_2m", "karras", 28, 5.5, "备选"),
+    ],
 }
 
 WORKFLOW_POOL.append("my_model")
@@ -95,9 +103,12 @@ year 2025, masterpiece, best quality, score_7, safe,
 
 ## 5. 其他限制
 
-- 自定义工作流默认不参与画师串、Anima 权重随机、眼部补强、hires fix；需要时显式配置 `artist_tags` 或改代码。
+- 自定义工作流在自动主链里默认不参与画师串、Anima 权重随机、眼部补强、hires fix；需要时显式配置 `artist_tags` 或改代码。
+- `custom_entry.py` 仍允许手工选择画师组合并注入自定义工作流，但 Anima 的 `@画师` 语法未必适用，菜单会警告。
 - 如果工作流里有 `CLIPSetLastLayer`，当前代码仍会写 Anima 默认的 `-2`；非 Anima 模型如果需要别的 CLIP skip，请删除该节点或改 `_build_workflow`。
-- `custom_entry.py` 的模型菜单目前只列系统模型；加了工作流但想在手工入口里选，需要同步改 `SYSTEM_MODELS`。
+- `custom_entry.py` 会动态列出 `WORKFLOW_SETTINGS` 中所有已注册工作流；没注册的 JSON 不会出现。只有 `WORKFLOW_POOL` 里的工作流会参与主链自动随机。
+- 自定义模型也会显示画师组合菜单，但 Anima 的 `@画师` / 权重语法未必适用；菜单会给出警告，效果需自测。
+- 采样器只有一种时自动使用；配置了多组 `sampler_combos` 才会要求选择。
 - 公开版不包含模型权重、VAE、CLIP；这些仍需在 ComfyUI 侧准备。
 
 ---
@@ -109,5 +120,6 @@ year 2025, masterpiece, best quality, score_7, safe,
 - `choose_workflow()` 能从 `WORKFLOW_POOL` 选中自定义 key
 - `_build_workflow()` 会替换正向/负向、seed、steps、cfg、sampler、scheduler、UNET 名
 - 自定义 `prompt_profile: "generic"` 不会加 `year 2025` 前缀
+- `custom_entry.py` 能列出已注册工作流，并显示其 `sampler_combos`；只有一组时自动选中
 
 如果自定义工作流的采样参数没有变化，第一检查 `_meta.title` 是否为 `ksampler`。

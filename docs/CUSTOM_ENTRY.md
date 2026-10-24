@@ -1,10 +1,10 @@
 # custom_entry.py 使用说明
 
-`custom_entry.py` 是手工入口：你直接指定角色、采样器和画师组合，跳过自动选角与角色门控。
+`custom_entry.py` 是手工入口：你先选已注册工作流，再指定角色、采样器和画师组合，跳过自动选角与角色门控。
 
 适合：
 
-- 已经知道要画哪个角色，只想换采样器或画师组合
+- 已经知道要画哪个角色，想换工作流、采样器或画师组合
 - 想固定 seed 复现某张图
 - 想先确认 ComfyUI / 提示词链路是否正常
 - 不想让自动选角改变角色
@@ -20,7 +20,7 @@
 
 | 命令 | 作用 | 需要 DeepSeek key | 需要 ComfyUI | 出图 |
 |---|---|---|---|---|
-| `python custom_entry.py --list` | 只列出模型、采样器、画师组合 | 否 | 否 | 否 |
+| `python custom_entry.py --list` | 列出已注册工作流、采样器、画师组合 | 否 | 否 | 否 |
 | `python custom_entry.py --dry-run` | 完整走一遍菜单，只打印结果 | 否 | 否 | 否 |
 | `python custom_entry.py` | 真正生成一张图 | 是 | 是 | 是 |
 
@@ -42,9 +42,11 @@ python custom_entry.py --list
 
 输出包括：
 
-- 2 个系统模型：`Anima-2.9B api`、`Anima-2.9B anima-flow`
-- 4 组采样器组合
+- 所有已注册工作流；默认是 `api`、`anima_flow` 两条 Anima 线
+- 每个工作流对应的采样器组合：`api` 默认 4 组，`anima_flow` 固定 1 组，自定义工作流看 `sampler_combos`
 - 27 组去重后的画师组合
+
+自定义 workflow 不能只放 JSON；必须先在 `config.py` 注册，详见 [WORKFLOW_EXTENSION.md](WORKFLOW_EXTENSION.md)。
 
 这一步不会调用 DeepSeek，也不会连接 ComfyUI。
 
@@ -101,17 +103,17 @@ python custom_entry.py
 下面以“初音未来 / Vocaloid / 不加画师 / 默认采样器”为例：
 
 ```text
-选择模型编号：1
-  1 = Anima-2.9B api
-  2 = Anima-2.9B anima-flow
+选择工作流编号：1
+  1 = Anima-2.9B-preview-v1 [api]
+  2 = Anima-2.9B-preview-v1 [anima_flow]
+  N = config.py 里注册的自定义工作流（如果有）
   9 = 修改 ComfyUI 路径
   q = 退出
 
 选择采样器组合编号（默认 1）：1
-  1 = euler + sgm_uniform
-  2 = res_multistep + linear_quadratic
-  3 = er_sde + beta57
-  4 = uni_pc + ddim_uniform
+  api：4 组 Anima KSampler 组合
+  anima_flow：固定 Flow 采样器，自动使用
+  自定义：有 sampler_combos 才显示多组；只有一组时自动使用
 
 选择画师组合编号（0=不加画师，默认 0）：0
   0 = 不注入画师串
@@ -147,7 +149,7 @@ march_7th_(honkai:_star_rail)
 
 ### 菜单里的特殊选项
 
-- `9`：修改 ComfyUI 目录/Python 路径，保存到 `user_settings.json`，然后回到模型选择
+- `9`：修改 ComfyUI 目录/Python 路径，保存到 `user_settings.json`，然后回到工作流选择
 - `q`：退出
 - 画师组合填 `0`：不注入任何画师串
 

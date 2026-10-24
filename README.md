@@ -15,15 +15,17 @@
 ```powershell
 python smoke_test.py                 # 只验证本地出图，不需要 DeepSeek key
 python pipeline_character.py         # 完整自动链路，需要 DeepSeek key
-python custom_entry.py               # 手工指定角色，需要 DeepSeek key + ComfyUI
+python custom_entry.py               # 手工指定工作流/角色/采样器/画师，需要 DeepSeek key + ComfyUI
 ```
 
 手工入口还有两种不消耗 API 的辅助用法：
 
 ```powershell
-python custom_entry.py --list        # 只列出模型/采样器/画师组合
+python custom_entry.py --list        # 列出已注册工作流、采样器、画师组合
 python custom_entry.py --dry-run     # 只走菜单，不调用 API、不出图
 ```
+
+自定义 workflow **不能只把 JSON 放进目录**；必须先按 [docs/WORKFLOW_EXTENSION.md](docs/WORKFLOW_EXTENSION.md) 在 `config.py` 注册，才会出现在菜单里。
 
 手工入口的完整交互说明（输入顺序、字段含义、示例、输出位置）：
 
@@ -58,7 +60,7 @@ python custom_entry.py --dry-run     # 只走菜单，不调用 API、不出图
 - **出图**：调用本地 ComfyUI，`api` 与 `anima_flow` 两条线路随机选择。
 - **候选选优**：一次生成多张，按本地美学评分选优；可选身份一致性复核。
 - **安全门控**：暴露类主题下，对角色体型做 VLM 复核（`body_judge.py`）。
-- **手工入口**：`custom_entry.py` 可指定角色、采样器和画师组合。
+- **手工入口**：`custom_entry.py` 可选择已注册工作流、角色、采样器和画师组合。
 
 不包含：
 
@@ -86,7 +88,7 @@ python custom_entry.py --dry-run     # 只走菜单，不调用 API、不出图
 ```text
 anima-pipeline/
 ├─ pipeline_character.py     # 主链：选角 → 门控 → 提示词 → 出图 → 选优
-├─ custom_entry.py           # 手工指定角色/采样器/画师组合
+├─ custom_entry.py           # 手工选择工作流/角色/采样器/画师组合
 ├─ comfy_runner.py           # ComfyUI 构图、采样、候选评分
 ├─ character_gate.py         # 角色 × 模型能力门控
 ├─ body_judge.py             # 暴露主题下的体型 VLM 复核
@@ -208,11 +210,11 @@ python pipeline_character.py
 
 流程：DeepSeek 选角 → 门控 → 提示词 → ComfyUI 出图 → 选优。
 
-### 3. 手工指定角色/采样器/画师组合
+### 3. 手工指定工作流/角色/采样器/画师组合
 
 > 完整逐步说明已单独整理：[docs/CUSTOM_ENTRY.md](docs/CUSTOM_ENTRY.md)
 
-手工入口**不经过自动选角和角色门控**：你直接给角色标签，适合已经知道要画谁、只想换采样器或画师组合的情况。模型不认识该角色时，仍可能出现通用脸。
+手工入口**不经过自动选角和角色门控**：你先选已注册工作流，再给角色标签、采样器和画师组合，适合已经知道要画谁、只想换工作流/采样器/画师的情况。模型不认识该角色时，仍可能出现通用脸。
 
 建议按“看选项 → 演练 → 实际出图”三步使用。
 
@@ -222,7 +224,7 @@ python pipeline_character.py
 python custom_entry.py --list
 ```
 
-只打印可选模型、4 组采样器和 27 组画师组合，然后退出。不调用 DeepSeek，不启动 ComfyUI，不出图。
+列出所有已注册工作流；默认是 Anima 两条线、4 组采样器和 27 组画师组合，自定义工作流注册后也会出现。只打印后退出，不调用 DeepSeek，不启动 ComfyUI，不出图。
 
 #### 3.2 演练一遍输入（不需要 DeepSeek key）
 
@@ -241,17 +243,17 @@ python custom_entry.py
 交互顺序固定如下：
 
 ```text
-选择模型编号：1
-  1 = Anima-2.9B api
-  2 = Anima-2.9B anima-flow
+选择工作流编号：1
+  1 = Anima-2.9B-preview-v1 [api]
+  2 = Anima-2.9B-preview-v1 [anima_flow]
+  N = config.py 里注册的自定义工作流（如果有）
   9 = 修改 ComfyUI 路径（保存到 user_settings.json）
   q = 退出
 
 选择采样器组合编号（默认 1）：1
-  1 = euler + sgm_uniform
-  2 = res_multistep + linear_quadratic
-  3 = er_sde + beta57
-  4 = uni_pc + ddim_uniform
+  api：4 组 Anima KSampler 组合
+  anima_flow：只有固定 Flow 采样器，自动使用
+  自定义：有 sampler_combos 才显示多组；只有一组时自动使用
 
 选择画师组合编号（0=不加画师，默认 0）：0
   0 = 不注入画师串
