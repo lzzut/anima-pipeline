@@ -567,14 +567,22 @@ THEME_GATE_MIN_RATIO = 0.03
 #    根因是"二创图量 ≠ 底模训练覆盖"（swimsuit 是通用高频概念，kimono 结构复杂易崩）。
 #    → 默认**只记录不换主题**（THEME_GATE_SWAP=False），绝不再屏蔽可用主题。
 THEME_GATE_SWAP = False
+# 主题表只保留规范名；别名走 THEME_ALIASES，不再重复占主题条目。
 THEME_TAG_MAP = {
-    "泳装": "swimsuit", "泳衣": "swimsuit", "比基尼": "bikini",
+    "泳装": "swimsuit", "比基尼": "bikini",
     "和服": "kimono", "浴衣": "yukata", "女仆": "maid", "圣诞": "christmas",
     "婚纱": "wedding dress", "护士": "nurse", "制服": "school uniform",
     # 2026-10-18 用户："兔女郎全角色禁用" → 已从主题表移除（并有负面兜底，见下）
     "运动": "sportswear", "旗袍": "cheongsam",
-    "礼服": "evening dress", "常装": "casual", "四季常装": "casual",
+    "礼服": "evening dress", "四季常装": "casual",
 }
+THEME_ALIASES = {"泳衣": "泳装", "常装": "四季常装"}
+
+
+def canonical_theme(theme):
+    """把主题别名归一到 THEME_TAG_MAP 的规范 key。"""
+    t = str(theme or "").strip()
+    return THEME_ALIASES.get(t, t)
 # 兔女郎全局禁用（主题已移除；再加负面兜底，即使提示词里出现也不会画）
 BANNED_THEMES = ("兔女郎", "bunny girl")
 BANNED_THEME_NEGATIVE = "bunny girl, bunny suit, playboy bunny, bunny ears, leotard"

@@ -1830,10 +1830,11 @@ def main():
     # 规则：角色×主题共现量需同时满足 绝对量≥150 且 占比≥3%；不达标则回退到候选里量最大的主题。
     try:
         from booru_client import theme_volume, character_total
-        _t_tag = _cfg.THEME_TAG_MAP.get(theme, "")
+        _t_theme = _cfg.canonical_theme(theme)
+        _t_tag = _cfg.THEME_TAG_MAP.get(_t_theme, "")
         if not _t_tag:
             for _k, _v in _cfg.THEME_TAG_MAP.items():
-                if _k in theme:
+                if _k in _t_theme:
                     _t_tag = _v
                     break
         if _t_tag:
