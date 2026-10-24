@@ -7,7 +7,7 @@ import json, random, re, shutil
 from comfyui_xy import ComfyUiClient
 from config import (
     COMFY_URL,
-    FALLBACK_NEGATIVE, WORKFLOW_SETTINGS, KSAMPLER_COMBOS,
+    FALLBACK_NEGATIVE, WORKFLOW_SETTINGS, WORKFLOW_POOL, KSAMPLER_COMBOS,
     ANIMA_FLOW_SETTINGS, CLIP_SKIP, GENERIC_FACE_TAGS,
     EXTRA_NEGATIVE, EYE_NEGATIVE, theme_scene_rule,
     ANIMA_PREFIX, ANIMA_NEGATIVE, anima_artist_combos,
@@ -72,21 +72,23 @@ def choose_track():
 
 
 def choose_workflow():
-    """先选线路，再在线路内二选一（见 WORKFLOW_TRACKS 说明）"""
-    track = choose_track()
-    wf = random.choice(WORKFLOW_TRACKS[track])
-    print(f"  [线路] {track} → 线路内选中 {wf}")
+    """从 config.WORKFLOW_POOL 随机选择，允许用户加入自定义工作流。"""
+    pool = list(WORKFLOW_POOL or [])
+    if not pool:
+        pool = ["api", "anima_flow"]
+    wf = random.choice(pool)
+    print(f"  [工作流池] 选中 {wf}")
     return wf
 
 
 
 def describe_workflow(workflow):
-    """给日志用的一句话描述"""
-    st = WORKFLOW_SETTINGS[workflow]
+    """给日志用的一句话描述；自定义工作流自动回退到文件名。"""
+    st = WORKFLOW_SETTINGS.get(workflow, {}) or {}
     name = {
         "api": "workflow_api.json (KSampler)",
         "anima_flow": "workflow_anima_flow.json (AnimaFlowCorrectiveSampler)",
-    }[workflow]
+    }.get(workflow, f"{workflow} ({os.path.basename(str(st.get('path', '?')))})")
     model = st.get("unet") or st.get("ckpt") or "?"
     return f"{name}, model={model}"
 
@@ -124,13 +126,15 @@ def run_tag(workflow, anchor=None, sampler=None, scheduler=None):
     **不再写死** —— 否则换模型后文件名会撒谎。
     """
     w = _weights_tag(workflow)
+    if workflow == "api":
+        return f"Anima2.9B_{w}_{sampler}_{scheduler}".replace(" ", "")
     if workflow == "anima_flow":
         return f"Anima2.9B_{w}_flow_euler"
-    if workflow == "animagine_xl":
-        return f"AnimagineXL4_{w}_{sampler}_{scheduler}".replace(" ", "")
-    if workflow == "nova_xl":
-        return f"NovaAnimeXL_{w}_{sampler}_{scheduler}".replace(" ", "")
-    return f"Anima2.9B_{w}_{sampler}_{scheduler}".replace(" ", "")
+    st = WORKFLOW_SETTINGS.get(workflow, {}) or {}
+    weight_file = st.get("unet") or st.get("ckpt") or workflow
+    stem = os.path.splitext(os.path.basename(str(weight_file)))[0]
+    stem = re.sub(r"[^A-Za-z0-9._-]+", "_", stem).strip("_") or workflow
+    return f"{stem}_{w}_{sampler}_{scheduler}".replace(" ", "")
 
 # ===========================================================================
 # 工作流与采样配置（2026-10-10 实测定档）
@@ -650,9 +654,14 @@ def format_prompt(workflow, positive, negative, identity=None, theme=None,
     · 其他工作流：保持原样（Illustrious 系与 Anima/Z-Image 都是质量词前置）
     """
     st = WORKFLOW_SETTINGS.get(workflow, {})
+    # prompt_profile:
+    #   "anima"   = Anima 官方前缀 + 官方负面 + 画师串（api/anima_flow 默认）
+    #   "generic" = 不改模型专属格式，原样透传（自定义工作流默认）
+    profile = str(st.get("prompt_profile") or
+                  ("anima" if workflow in ("api", "anima_flow") else "generic")).lower()
 
     # --- Anima-2.9B：按官方模型卡规范（score_7 前缀 + 官方负面 + 强制画师串）---
-    if workflow in ("api", "anima_flow"):
+    if profile == "anima":
         m = _SUBJECT_RE.search(positive or "")
         if m:
             body = positive[m.start():].strip(" ,")
@@ -849,9 +858,11 @@ def generate_images(prompt_list, output_dir,
     """
     出图并自动打分选优。
 
-    workflow: "api" / "anima_flow"，传 None 则二选一随机。
+    workflow: "api" / "anima_flow" / 自定义 key；传 None 则从 WORKFLOW_POOL 随机。
               - api          : KSampler，采样器组合从 KSAMPLER_COMBOS 随机抽（每套自带步数/CFG）
               - anima_flow   : AnimaFlowCorrectiveSampler（cfg5/50步，项目统一）
+              - 自定义       : 读取 WORKFLOW_SETTINGS[key] 的 steps/cfg/sampler/scheduler；
+                               prompt_profile 默认 generic，不套 Anima 前缀
     steps/cfg: 显式传入则覆盖该工作流的默认值。
     """
     os.makedirs(output_dir, exist_ok=True)
@@ -876,18 +887,29 @@ def generate_images(prompt_list, output_dir,
         print(f"  [采样组合] KSampler {sampler} + {scheduler}, {steps}步, "
               f"cfg{cfg}  ← {source}")
     elif workflow == "anima_flow":
-        steps = st["steps"] if steps is None else steps
-        cfg = st["cfg"] if cfg is None else cfg
+        steps = st.get("steps", 50) if steps is None else steps
+        cfg = st.get("cfg", 5.0) if cfg is None else cfg
         flow_settings = dict(ANIMA_FLOW_SETTINGS)
         print("  [工作流] workflow_anima_flow.json")
         print(f"  [采样组合] {flow_settings['flow_solver']} + "
               f"{flow_settings['flow_schedule']}, shift={flow_settings['flow_shift']}, "
               f"{flow_settings['cfg_mode']}, {steps}步, cfg{cfg}")
+    else:
+        steps = int(st.get("steps", 30)) if steps is None else steps
+        cfg = float(st.get("cfg", 5.0)) if cfg is None else cfg
+        sampler = st.get("sampler")
+        scheduler = st.get("scheduler")
+        flow_settings = st.get("flow_settings")
+        print(f"  [工作流] {describe_workflow(workflow)}")
+        print(f"  [采样组合] {sampler or 'workflow 默认'} + "
+              f"{scheduler or 'workflow 默认'}, {steps}步, cfg{cfg}")
 
     print(f"  [模型] {unet_name or ckpt_name}")
 
-    # 按作品注入画师串（Anima 系用 @ 前缀）
-    if workflow in ARTIST_TAGS_WORKFLOWS:
+    # 按作品注入画师串（Anima 系用 @ 前缀；自定义工作流默认不加）
+    _use_artist_tags = bool(st.get("artist_tags",
+                                   workflow in ARTIST_TAGS_WORKFLOWS))
+    if _use_artist_tags:
         # 2026-10-11 用户规格：Anima 两条线的画师串**50% 触发**，且 CFG 与触发联动
         #   触发   → 画师串注入 + CFG 固定 3.7（画师串是强风格注入，需要更低 CFG 才不过火）
         #   不触发 → 不注入画师串 + CFG 随机 3.5~5.0（含两端）

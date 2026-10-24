@@ -69,6 +69,18 @@ python custom_entry.py --dry-run     # 只走菜单，不调用 API、不出图
 
 ---
 
+## 自定义工作流
+
+公开版支持把符合节点契约的 **ComfyUI API 格式 KSampler 工作流**加入 `WORKFLOW_POOL`，但不是“丢进目录就自动扫描”，还需要在 `config.py` 注册工作流设置和模型档案。
+
+**提示词警告**：Anima-2.9B 的 `year 2025 / score_7 / 画师串 / 长 Danbooru 标签`结构，是按 Anima 和对应文本编码器调过的。自添加模型的提示词语法、文本编码器可读长度、VAE 和推荐步数都可能不同；长提示词可能被截断，原来的提示词结构也不一定适用。不要把“能出图”当成“提示词已适配”。
+
+完整节点契约、注册步骤和限制见：
+
+**[docs/WORKFLOW_EXTENSION.md](docs/WORKFLOW_EXTENSION.md)**
+
+---
+
 ## 目录结构
 
 ```text
@@ -94,6 +106,7 @@ anima-pipeline/
 │  └─ danbooru_tags.csv
 ├─ docs/
 │  ├─ CUSTOM_ENTRY.md      # 手工入口完整说明
+│  ├─ WORKFLOW_EXTENSION.md # 自定义工作流契约与提示词警告
 │  └─ samples/
 └─ requirements.txt
 ```
