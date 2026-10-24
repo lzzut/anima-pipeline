@@ -317,7 +317,11 @@ def change_comfyui_path():
 def main():
     dry = "--dry-run" in sys.argv
     if "--list" in sys.argv:
-        list_models(); list_samplers(); list_artists()
+        models = model_entries()
+        list_models()
+        for key, _label, _desc in models:
+            list_samplers(key)
+        list_artists()
         return
     load_settings()
     print("=" * 70)
