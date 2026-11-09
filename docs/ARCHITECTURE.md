@@ -2,6 +2,8 @@
 
 本文描述当前默认基线：DeepSeek V4 Flash 1017（请求名 `deepseek-flash`）+ Anima-2.9B-preview-v1，单人物、`stable` 提示词通道，两条本地 ComfyUI 采样工作流。改变模型、节点或设计开关后，应重新验证实际提示词与图片，不能沿用原配置的效果推断。
 
+画面效果的实图与字段对应见 [`SAMPLES.md`](SAMPLES.md)：时段／天气、动作／镜头、换装／光照及同提示词换 seed 均有真实图示。实际正负提示词与绘图参数保存在 [`sample_prompts.json`](sample_prompts.json)，仅作为文档数据，不参与运行。实图只能佐证可见结果；事实引文支持、修正上限和预算恢复须查看代码及本次运行记录。
+
 ## 入口与数据生命周期
 
 `custom_entry.generate` 创建任务输出目录，将手动人物交给 `pipeline_character._prepare_character_facts`，再把**同一个 Session**传入 `_build_all_channel_prompts`。自动入口 `run_auto` 先通过 `select_auto_character` 选角／门控和事实预检，再调用同一个 `custom_entry.generate`，不会再抽取一次已批准事实。
@@ -88,4 +90,4 @@
 
 `ANIMA_CAMERA_DIRECTION=False`：当前使用构图协调层，默认没有再加一个独立 camera 写作调用。`ANIMA_SECOND_REVIEW_MODEL=""`：没有默认多审稿模型。`ANIMA_PROMPT_MAX_CHARS=16000` 是异常长度拒绝上限，不是目标字数，也不是绘图编码器的准确 token 上限；可选 `ANIMA_TOKENIZER_ROOT` 诊断不能代替实际节点行为。
 
-仓库保留的 `anima_prompt_experiments.py` 是被编译／写作层导入的策略配置模块，默认 `baseline`；它不是会自动启动测试的入口。未注册的旧模型兼容分支不等于公开支持那些模型，正式入口只提供 `api/anima_flow`。公开包不包含内部测试脚本和测试产物。
+仓库保留的 `anima_prompt_experiments.py` 是被编译／写作层导入的策略配置模块，默认 `baseline`；它不是会自动启动测试的入口。未注册的旧模型兼容分支不等于公开支持那些模型，正式入口只提供 `api/anima_flow`。公开包不包含内部测试脚本或原始测试目录，经过筛选和脱敏的静态样图仅用于文档展示。

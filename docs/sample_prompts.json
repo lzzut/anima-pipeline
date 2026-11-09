@@ -1,0 +1,796 @@
+{
+  "schema": "anima_public_sample_gallery_v1",
+  "text_model_baseline": "DeepSeek V4 Flash 1017 (service alias: deepseek-flash)",
+  "drawing_model_family": "Anima-2.9B-preview-v1",
+  "aesthetic_model": "kawaimasa/kawai-aesthetic-scorer-convnextv2",
+  "image_export": "Full frame and original dimensions; JPEG quality 94, no workflow/EXIF metadata. Historical style comparison restored byte-for-byte.",
+  "notes": [
+    "Selected existing real runs, not new generations or a success-rate estimate.",
+    "V2 integration samples were generated before public-export isolation; established cases reused approved character facts.",
+    "Earlier V2 supplements illustrate visible results, not exact current-export reproducibility.",
+    "Custom menu run reused established character research and performed live semantic review, design, rendering and scoring.",
+    "Prompts and parameters are copied from embedded actual ComfyUI graphs; required model/node versions and hardware may affect reproduction.",
+    "The five custom candidates share prompts and settings except seed. Aesthetic ranking does not certify identity, pose or anatomy."
+  ],
+  "samples": [
+    {
+      "id": "T02",
+      "character": "娜美",
+      "theme": "泳装",
+      "image": "samples/t02_nami_sunset.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "黄昏海滩 · 坐姿",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, city, buildings, architecture, urban, indoor, swimming pool, floating bubbles, particles, emblem, logo, chest print, text, watermark, extra fingers, malformed hands, extra limbs, distorted swimsuit, broken sarong knot., bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, castle, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, nami \\(one piece\\), one piece, @eluthel, (@nogreen:0.65)\norange hair, long wavy curly hair, waist-length long hair, light brown eyes, Log Pose on her left wrist, gold bracelet on her left wrist, pearl earrings\nslim body, body height 170 cm, body measurements 98/58/88 cm (J cup), black tattoo on her left shoulder, mikan-pinwheel tattoo on her left shoulder, indelible scar from removing the Arlong Pirates tattoo\nblue one-piece swimsuit, white sarong. The blue one-piece swimsuit has a high-cut halter silhouette in matte stretch knit, with deep blue ruched side panels; the white sarong in lightweight cotton voile ties at one side with a short fringed hem.\nsmile, closed mouth, relaxed, enjoying the cool evening breeze.\nsitting, seated on the sand with her knees bent and turned to one side, right hand braced on the sand beside her hip, left hand resting on her raised knee with her left wrist and its Log Pose and gold bracelet visible; shoulders relaxed, head turned toward the viewer; the sarong hem stays closed and gathered around her legs.\nhorizon, sky, beach, sand, wet sand, surf, ocean, island. The horizon runs across the lower middle behind her torso, with a small green island on it and shaped cumulus clouds above; a curved bay steps from dry sand in the foreground through a wet-sand edge of broken white surf to open sea, whose nearer blue-green water recedes to a quieter far tone.\nsunset, orange sky, evening, low sun, sidelighting; a low sun from camera left rakes across the bay, lighting the left side of her face and shoulder and the front plane of the blue swimsuit while the right side of her torso and the sarong's far folds fall into warm shadow. Wet sand and broken surf catch long orange reflections, the foreground casts stretched shadows toward camera right, and contact shadows anchor her hips and braced right hand in the dry sand; broad skin shading, matte blue ruched knit, white cotton voile and small gold bracelet glints keep their intrinsic colors.\nfrom below, camera at her seated chest height and tilted up slightly, positioned a little to her left so her front three-quarter torso, left shoulder, and left wrist remain visible; framing her from mid-thigh to above her head, keeping her large in frame and filling at least two-thirds of the frame height.\nwater droplets on skin, wet hair\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "50f0be7b95c86168ba848435d985091b4fb08d0c9c688f5a7f5fd1ae8ea7acd6",
+      "structured_fields": {
+        "outfit": "blue one-piece swimsuit, white sarong. The blue one-piece swimsuit has a high-cut halter silhouette in matte stretch knit, with deep blue ruched side panels; the white sarong in lightweight cotton voile ties at one side with a short fringed hem.",
+        "expression": "smile, closed mouth, relaxed, enjoying the cool evening breeze.",
+        "pose": "sitting, seated on the sand with her knees bent and turned to one side, right hand braced on the sand beside her hip, left hand resting on her raised knee with her left wrist and its Log Pose and gold bracelet visible; shoulders relaxed, head turned toward the viewer; the sarong hem stays closed and gathered around her legs.",
+        "scene": "horizon, sky, beach, sand, wet sand, surf, ocean, island. The horizon runs across the lower middle behind her torso, with a small green island on it and shaped cumulus clouds above; a curved bay steps from dry sand in the foreground through a wet-sand edge of broken white surf to open sea, whose nearer blue-green water recedes to a quieter far tone.",
+        "lighting": "sunset, orange sky, evening, low sun, sidelighting; a low sun from camera left rakes across the bay, lighting the left side of her face and shoulder and the front plane of the blue swimsuit while the right side of her torso and the sarong's far folds fall into warm shadow. Wet sand and broken surf catch long orange reflections, the foreground casts stretched shadows toward camera right, and contact shadows anchor her hips and braced right hand in the dry sand; broad skin shading, matte blue ruched knit, white cotton voile and small gold bracelet glints keep their intrinsic colors.",
+        "composition": "from below, camera at her seated chest height and tilted up slightly, positioned a little to her left so her front three-quarter torso, left shoulder, and left wrist remain visible; framing her from mid-thigh to above her head, keeping her large in frame and filling at least two-thirds of the frame height.",
+        "negative": "city, buildings, architecture, urban, indoor, swimming pool, floating bubbles, particles, emblem, logo, chest print, text, watermark, extra fingers, malformed hands, extra limbs, distorted swimsuit, broken sarong knot."
+      },
+      "design_choices": {
+        "time_of_day": "昏",
+        "camera_angle": "仰视",
+        "posture": "坐"
+      }
+    },
+    {
+      "id": "T05",
+      "character": "雷电将军",
+      "theme": "和服",
+      "image": "samples/t05_raiden_rain.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "白昼雨庭 · 和服",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, market stalls, food stalls, vendor booths, street vendors, food carts, yatai, makeshift market, emblem, logo, chest print, text, watermark, extra hair ornaments, wide-kneed squat, bare thighs, loose kimono hem, floating geta, incorrect obi, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, raiden shogun, genshin impact, @shirocha tei, (@norizc:0.65)\npurple hair, hair tied in a very long braid, purple eyes, hair ornament\nblue kimono, white under-kimono, black obi, white tabi, black geta. The blue kimono is matte wool-silk with wide sleeves and a fan-shaped pale blue sleeve edge; the black obi is stiff woven fabric with a flat front knot and one yellow cord; the white under-kimono shows a high layered collar, and the black geta are lacquered.\ncalm, expressionless, closed mouth, her face composed and remote as she meets the viewer's gaze with quiet authority.\nSquatting, knees together, weight settled on the wooden veranda floor, the kimono hem closed and gathered around her legs; both hands rest on her knees, and her head turns gently toward the viewer.\noutdoors, rain, grey sky, temple garden, wooden veranda, stone lantern, maple trees, pond. Rain falls beyond the eaves and stipples the pond; wet stone and clipped shrubs recede across the moss, while red maple crowns overlap a low tiled roofline beneath low grey rain clouds.\nday, rain, grey sky, overcast daylight, sidelighting. Wet grey light from the open garden reaches from camera left, lighting the camera-left plane of her face, the near blue kimono shoulder and pale sleeve edge; the other cheek, torso side and gathered hem fall into eave shadow, with only a weak wet-board bounce keeping the eyes readable. Contact shadows sit under the geta and folded hem; matte wool-silk shows broad blue shading, the black obi a restrained woven sheen, and the lacquered geta small hard glints beside the pond's pale reflection.\ndutch angle, the camera is rolled so verticals and the veranda edge run diagonally across the frame; it stands a few steps in front and to her left, seeing her torso at a three-quarter angle, with her body filling most of the frame height and placed slightly right of center in a close full-body crop from the hair ornament above the collar down to the black geta.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "65f6ee3bee85c76a0b7c3d7e8335c5f4e5b1e7a377d1eb9ff4781286e6e7ae7a",
+      "structured_fields": {
+        "outfit": "blue kimono, white under-kimono, black obi, white tabi, black geta. The blue kimono is matte wool-silk with wide sleeves and a fan-shaped pale blue sleeve edge; the black obi is stiff woven fabric with a flat front knot and one yellow cord; the white under-kimono shows a high layered collar, and the black geta are lacquered.",
+        "expression": "calm, expressionless, closed mouth, her face composed and remote as she meets the viewer's gaze with quiet authority.",
+        "pose": "Squatting, knees together, weight settled on the wooden veranda floor, the kimono hem closed and gathered around her legs; both hands rest on her knees, and her head turns gently toward the viewer.",
+        "scene": "outdoors, rain, grey sky, temple garden, wooden veranda, stone lantern, maple trees, pond. Rain falls beyond the eaves and stipples the pond; wet stone and clipped shrubs recede across the moss, while red maple crowns overlap a low tiled roofline beneath low grey rain clouds.",
+        "lighting": "day, rain, grey sky, overcast daylight, sidelighting. Wet grey light from the open garden reaches from camera left, lighting the camera-left plane of her face, the near blue kimono shoulder and pale sleeve edge; the other cheek, torso side and gathered hem fall into eave shadow, with only a weak wet-board bounce keeping the eyes readable. Contact shadows sit under the geta and folded hem; matte wool-silk shows broad blue shading, the black obi a restrained woven sheen, and the lacquered geta small hard glints beside the pond's pale reflection.",
+        "composition": "dutch angle, the camera is rolled so verticals and the veranda edge run diagonally across the frame; it stands a few steps in front and to her left, seeing her torso at a three-quarter angle, with her body filling most of the frame height and placed slightly right of center in a close full-body crop from the hair ornament above the collar down to the black geta.",
+        "negative": "market stalls, food stalls, vendor booths, street vendors, food carts, yatai, makeshift market, emblem, logo, chest print, text, watermark, extra hair ornaments, wide-kneed squat, bare thighs, loose kimono hem, floating geta, incorrect obi"
+      },
+      "design_choices": {
+        "time_of_day": "昼",
+        "camera_angle": "倾斜",
+        "posture": "半蹲",
+        "setting_name": "temple veranda in rain"
+      }
+    },
+    {
+      "id": "T09",
+      "character": "2B",
+      "theme": "女仆",
+      "image": "samples/t09_2b_side_seated.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "侧身坐姿 · 窗光",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, hat, beret, hood, apron bow at front, bare legs without thighhighs, malformed hands, extra fingers, floating teacup, cup fused with fingers, distorted stool, broken table edge, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, 2b \\(nier:automata\\), nier:automata, @saltnvalk, (@nekojira:0.65)\nshort, silvery white hair, appears to have a pale facial complexion, appears to have a facial mole on the right part of her chin, black blindfold\nappears to be a young woman, slim figure\nblack maid dress, white blouse, white apron, black ribbon belt, white thighhighs, black Mary Jane shoes. The black maid dress is a sleeveless pinafore with a fitted bodice and knee-length flared skirt in matte cotton twill, worn over a crisp white cotton blouse with short sleeves. The white apron has ruffled shoulder straps, cinched by the black ribbon belt tied in a bow at the back; plain white thighhighs and black Mary Jane shoes finish the maid outfit.\nsmile, closed mouth, calm, a restrained, polite ease as she pauses over her tea.\nsitting, holding cup, both hands, she is seated on a wooden stool at a kitchen table, her body turned sideways to the camera with shoulders and hips aligned sideways, both hands loosely cradling a white teacup resting on the tabletop; her head dips slightly toward the cup, and her back stays upright and relaxed.\nindoors, kitchen, wooden table, tall windows, tiled floor, wooden shelves, work counter. The worn tabletop and the edge of the stool sit in the near foreground, the broad work counter and open shelves cross the middle distance, and the tall windows above the pale tiled floor close the far wall, with window frames and shelf edges overlapping and a pale morning brightness beyond the glass.\nmorning, sunlight, sidelighting, window shadow. Light from the tall windows falls in a clear band across the worn tabletop and lights the window-facing side of her face, blouse sleeve and apron, while the near profile of her bodice and skirt stays in a darker shadow plane; white cotton catches the daylight, matte black twill holds deep folds, worn wood keeps its grain, and the glazed cup takes a small hard highlight; a weak bounce from the pale tiled floor lifts only the shadow edge, with contact shadows under the cup and hands, beneath the stool, and around the shoes on the tiled floor.\nfrom side, the camera is at her seated eye level, framing a close full-body shot in which she fills about two-thirds of the frame height and sits slightly right of center; her shoulders and hips read in profile, with the tabletop and teacup anchoring the near foreground and the background receding behind her.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "2c0fc1d120556ddcdf0e5b785ad240a64e8759aa25e7eb94d6873070d812d2f8",
+      "structured_fields": {
+        "outfit": "black maid dress, white blouse, white apron, black ribbon belt, white thighhighs, black Mary Jane shoes. The black maid dress is a sleeveless pinafore with a fitted bodice and knee-length flared skirt in matte cotton twill, worn over a crisp white cotton blouse with short sleeves. The white apron has ruffled shoulder straps, cinched by the black ribbon belt tied in a bow at the back; plain white thighhighs and black Mary Jane shoes finish the maid outfit.",
+        "expression": "smile, closed mouth, calm, a restrained, polite ease as she pauses over her tea.",
+        "pose": "sitting, holding cup, both hands, she is seated on a wooden stool at a kitchen table, her body turned sideways to the camera with shoulders and hips aligned sideways, both hands loosely cradling a white teacup resting on the tabletop; her head dips slightly toward the cup, and her back stays upright and relaxed.",
+        "scene": "indoors, kitchen, wooden table, tall windows, tiled floor, wooden shelves, work counter. The worn tabletop and the edge of the stool sit in the near foreground, the broad work counter and open shelves cross the middle distance, and the tall windows above the pale tiled floor close the far wall, with window frames and shelf edges overlapping and a pale morning brightness beyond the glass.",
+        "lighting": "morning, sunlight, sidelighting, window shadow. Light from the tall windows falls in a clear band across the worn tabletop and lights the window-facing side of her face, blouse sleeve and apron, while the near profile of her bodice and skirt stays in a darker shadow plane; white cotton catches the daylight, matte black twill holds deep folds, worn wood keeps its grain, and the glazed cup takes a small hard highlight; a weak bounce from the pale tiled floor lifts only the shadow edge, with contact shadows under the cup and hands, beneath the stool, and around the shoes on the tiled floor.",
+        "composition": "from side, the camera is at her seated eye level, framing a close full-body shot in which she fills about two-thirds of the frame height and sits slightly right of center; her shoulders and hips read in profile, with the tabletop and teacup anchoring the near foreground and the background receding behind her.",
+        "negative": "emblem, logo, chest print, text, hat, beret, hood, apron bow at front, bare legs without thighhighs, malformed hands, extra fingers, floating teacup, cup fused with fingers, distorted stool, broken table edge"
+      },
+      "design_choices": {
+        "time_of_day": "晨",
+        "camera_angle": "侧面",
+        "posture": "坐",
+        "setting_name": "quiet manor kitchen"
+      }
+    },
+    {
+      "id": "T10",
+      "character": "2B",
+      "theme": "女仆",
+      "image": "samples/t10_2b_dutch_walk.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "晨间园路 · 倾斜构图",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, extra hands, fused fingers, malformed hands, duplicate cup, floating cup, broken teacup, missing apron, missing blindfold, hat, beret, hood, maid headband, bare feet, extra accessories, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, 2b \\(nier:automata\\), nier:automata, @zero (jckz2334), (@kaesmedubu:0.65)\nshort, silvery white hair, appears to have a facial mole on the right part of her chin, black blindfold\nappears to be a young woman, slim figure\nblack maid dress, white apron, white blouse, blue waist ribbon, black ankle boots. The black maid dress is matte cotton with a fitted bodice and knee-length pleated skirt; the white apron has a square bib and ruffled hem, cinched by the blue waist ribbon, and the white blouse and black leather ankle boots complete the look.\ncalm, closed mouth, quietly attentive as she moves through the morning garden.\nwalking, holding cup, mid-step along the stone path with her weight on the forward planted foot while the other foot lifts, one hand steadying a small teacup at waist height with a bent elbow while the other arm rests naturally at her side; her torso and hips angle slightly toward the tea table, and her head turns toward the path ahead.\noutdoors, garden, tea party, rose bushes, clipped hedge, stone path, blue sky, morning. The canted horizon crosses the upper background; a clipped hedge and full rose bushes overlap along the stone path in the near and middle ground, a tea table and chairs sit among the blooms, and soft grass and taller trees recede in cooler green beneath the clear morning sky.\nmorning, sunrise, sunlight, sidelighting, dappled sunlight. Low sun from camera-left strikes the camera-left side of her face, white apron bib and black dress bodice while the opposite shoulder and skirt pleats fall into a clear shadow plane; broken hedge and rose shadows cross the stone path, a compact contact shadow anchors the planted boot, and weak blue-sky fill opens the shaded apron folds. Matte cotton and apron hold broad light-to-shadow planes, skin keeps warm shading, black leather boots catch small glints, and dew brightens the rose leaves.\ndutch angle, camera at shoulder height and canted so the path slants across the frame, framing her centered in a close full-body three-quarter front view with her torso presented at a three-quarter angle to the camera; she fills most of the frame height, with the canted background receding behind her.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "19b8e71078dc5147596cb09b6f8e6830f5e15dfe2da2defdd5af9381bd3ee4af",
+      "structured_fields": {
+        "outfit": "black maid dress, white apron, white blouse, blue waist ribbon, black ankle boots. The black maid dress is matte cotton with a fitted bodice and knee-length pleated skirt; the white apron has a square bib and ruffled hem, cinched by the blue waist ribbon, and the white blouse and black leather ankle boots complete the look.",
+        "expression": "calm, closed mouth, quietly attentive as she moves through the morning garden.",
+        "pose": "walking, holding cup, mid-step along the stone path with her weight on the forward planted foot while the other foot lifts, one hand steadying a small teacup at waist height with a bent elbow while the other arm rests naturally at her side; her torso and hips angle slightly toward the tea table, and her head turns toward the path ahead.",
+        "scene": "outdoors, garden, tea party, rose bushes, clipped hedge, stone path, blue sky, morning. The canted horizon crosses the upper background; a clipped hedge and full rose bushes overlap along the stone path in the near and middle ground, a tea table and chairs sit among the blooms, and soft grass and taller trees recede in cooler green beneath the clear morning sky.",
+        "lighting": "morning, sunrise, sunlight, sidelighting, dappled sunlight. Low sun from camera-left strikes the camera-left side of her face, white apron bib and black dress bodice while the opposite shoulder and skirt pleats fall into a clear shadow plane; broken hedge and rose shadows cross the stone path, a compact contact shadow anchors the planted boot, and weak blue-sky fill opens the shaded apron folds. Matte cotton and apron hold broad light-to-shadow planes, skin keeps warm shading, black leather boots catch small glints, and dew brightens the rose leaves.",
+        "composition": "dutch angle, camera at shoulder height and canted so the path slants across the frame, framing her centered in a close full-body three-quarter front view with her torso presented at a three-quarter angle to the camera; she fills most of the frame height, with the canted background receding behind her.",
+        "negative": "emblem, logo, chest print, text, extra hands, fused fingers, malformed hands, duplicate cup, floating cup, broken teacup, missing apron, missing blindfold, hat, beret, hood, maid headband, bare feet, extra accessories"
+      },
+      "design_choices": {
+        "time_of_day": "晨",
+        "camera_angle": "倾斜",
+        "posture": "走动"
+      }
+    },
+    {
+      "id": "T13",
+      "character": "爱丽丝（艾丽丝）",
+      "theme": "婚纱",
+      "image": "samples/t13_aerith_back_view.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "背身回眸 · 跪姿",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, text, watermark, logo, emblem, chest print, extra fingers, malformed hands, distorted ribbon, broken hem, bare feet, modern streetwear, casual clothes, alternate costume, duplicate hair ornaments, missing braid, missing pink ribbons, missing white materia, wrong hair color, wrong eye color, front neckline, front bodice details, front sash knot, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, aerith gainsborough, final fantasy vii, @uriah-oyu, (@sw haze:0.65)\nhair: long brown hair tied in a braid, eyes: green eyes, hair accessory: pink ribbons, hair accessory: White Materia\nbody: 163 cm tall\nwhite wedding dress, pink sash, white gloves, white heels. The white wedding dress has a fitted sleeveless bodice and a full tea-length skirt in ivory satin over a white tulle layer, with a narrow white ribbon trim along the hem. The pink sash ties at the waist with a flat blush-pink bow at the back, and the white gloves have one round white pearl button at each wrist.\nsmile, closed mouth, blush, with quiet warmth as she looks back over her shoulder.\nkneeling with her weight settled back on her heels on the grass, both gloved hands resting lightly on the gathered tea-length skirt over her knees, and her head turned over her shoulder.\noutdoors, dew-bright garden, flower beds, clipped hedge, flowering shrubs, trees, blue sky, low stone border. Dew-bright grass and the low stone border frame the near ground; flower beds and the clipped hedge overlap with flowering shrubs in the middle distance, while layered treetops recede against a pale blue sunrise sky along the upper edge.\nmorning, sunrise, sunlight, sidelighting. Low sunrise light rakes in from frame-left, warming the frame-left plane of her back, the upper folds of the ivory satin skirt, and the frame-left side of her turned face; the frame-right side of her back, the frame-right side of her cheek, and the deeper tulle and satin folds stay in cool blue shadow. The blush-pink bow catches a narrow warm edge on its upper fold, while the gloved hands and the grass support hold small contact shadows; the clipped hedge throws an irregular shadow across the dew-bright lawn.\nfrom behind, from above; the camera is directly behind her at a raised viewpoint, looking down past her shoulders as she kneels. Her back and the bow at her waist anchor the center of the close frame, while her turned face and hair ornaments appear near the upper edge; the skirt spreads in a soft arc around her knees, and her kneeling form fills most of the frame height.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "9e3bf90b8249dcaeb6a30c805016060fe5caa8af574d93f4ece919df0640b8d0",
+      "structured_fields": {
+        "outfit": "white wedding dress, pink sash, white gloves, white heels. The white wedding dress has a fitted sleeveless bodice and a full tea-length skirt in ivory satin over a white tulle layer, with a narrow white ribbon trim along the hem. The pink sash ties at the waist with a flat blush-pink bow at the back, and the white gloves have one round white pearl button at each wrist.",
+        "expression": "smile, closed mouth, blush, with quiet warmth as she looks back over her shoulder.",
+        "pose": "kneeling with her weight settled back on her heels on the grass, both gloved hands resting lightly on the gathered tea-length skirt over her knees, and her head turned over her shoulder.",
+        "scene": "outdoors, dew-bright garden, flower beds, clipped hedge, flowering shrubs, trees, blue sky, low stone border. Dew-bright grass and the low stone border frame the near ground; flower beds and the clipped hedge overlap with flowering shrubs in the middle distance, while layered treetops recede against a pale blue sunrise sky along the upper edge.",
+        "lighting": "morning, sunrise, sunlight, sidelighting. Low sunrise light rakes in from frame-left, warming the frame-left plane of her back, the upper folds of the ivory satin skirt, and the frame-left side of her turned face; the frame-right side of her back, the frame-right side of her cheek, and the deeper tulle and satin folds stay in cool blue shadow. The blush-pink bow catches a narrow warm edge on its upper fold, while the gloved hands and the grass support hold small contact shadows; the clipped hedge throws an irregular shadow across the dew-bright lawn.",
+        "composition": "from behind, from above; the camera is directly behind her at a raised viewpoint, looking down past her shoulders as she kneels. Her back and the bow at her waist anchor the center of the close frame, while her turned face and hair ornaments appear near the upper edge; the skirt spreads in a soft arc around her knees, and her kneeling form fills most of the frame height.",
+        "negative": "text, watermark, logo, emblem, chest print, extra fingers, malformed hands, distorted ribbon, broken hem, bare feet, modern streetwear, casual clothes, alternate costume, duplicate hair ornaments, missing braid, missing pink ribbons, missing White Materia, wrong hair color, wrong eye color, front neckline, front bodice details, front sash knot"
+      },
+      "design_choices": {
+        "time_of_day": "晨",
+        "camera_angle": "俯视",
+        "posture": "跪",
+        "setting_name": "dew-bright garden at sunrise"
+      }
+    },
+    {
+      "id": "T16",
+      "character": "八重神子",
+      "theme": "护士",
+      "image": "samples/t16_yae_day_interior.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "室内日光 · 换装",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, name tag, nurse cap, extra headwear, open clipboard, writing, extra medical tools, operating iv stand, wet clothes, bare feet, malformed hands, extra limbs, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, yae miko, genshin impact, @moonya, (@calendulamew:0.65)\nlong muted pink hair tied at the bottom, blue-purple eyes, golden head accessory, golden earrings matching the golden head accessory, right earring contains an Electro Inazuman Vision wrapped in a complex drop-shaped piece and decorated by a small fan-shaped accessory at the bottom, left earring designed to mimic the right earring, with minor differences in the Vision portion, ear pendants inlaid with purple gemstones hang on her fox ears year-round, earrings attached to her ears by diamond-shaped studs\nsoftly drooping fox ears, both legs are bare\nwhite nurse dress, white apron, yellow ribbon belt, white gloves, white shoes. The knee-length white nurse dress is crisp cotton twill with short sleeves, a square neckline and a gently flared skirt; the white apron has two large patch pockets and a softly ruffled hem. The yellow ribbon belt ties at the waist with a small gold buckle and short ribbon tails.\nsmile, closed mouth, looking at viewer, a quiet, reassuring bedside manner as she pauses during a routine check.\nsitting on the edge of the hospital bed with knees together, feet on the floor, and her torso upright; her right arm is bent with the hand holding a closed clipboard against her thigh, her left arm relaxed with the hand resting beside her hip on the bed, her shoulders ease down, and her head stays level with her torso in a quiet bedside-check pause.\nindoors, hospital room, hospital bed, window, curtains, closed door, iv stand. The near bed edge and clean linens fill the lower foreground with folds crossing beneath her seated weight; the middle bedside aisle is shaped by overlapping curtain folds and the IV stand, and the pale clinical wall recedes to a closed door and muted medical equipment in cooler shadow. Daylight through the curtains brightens the window side while the far corner stays a quieter grey, keeping the room readable without flattening into a pale backdrop.\nday, sunlight, window light, sidelighting. The frame-left curtained window is the key, putting lit planes on her right cheek, right sleeve, apron front and right knee while her left cheek, left torso and skirt folds fall into a clear shadow side; cool wall and linen bounce remain weaker. Curtain folds carry a sunlit edge against deeper fold shadow, and the far wall holds a low-contrast shadow plane behind the bed. Broad skin shading, matte cotton-twill and apron folds, small gold-buckle glints, and contact shadows under her hips, both gloved hands, and shoes on the floor keep the light on the forms.\nstraight-on, eye-level camera directly in front of her, with level perspective across the bed edge; she is centered and fills at least two-thirds of the frame height in a close full-body seated view, her torso and hips squared to the viewer and her head level toward the camera; the hospital bed edge anchors the lower frame.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "6da8e06c649b35bef41b8c38ce9043ab70f74bd1b7ed95aa4fdeb18653387c46",
+      "structured_fields": {
+        "outfit": "white nurse dress, white apron, yellow ribbon belt, white gloves, white shoes. The knee-length white nurse dress is crisp cotton twill with short sleeves, a square neckline and a gently flared skirt; the white apron has two large patch pockets and a softly ruffled hem. The yellow ribbon belt ties at the waist with a small gold buckle and short ribbon tails.",
+        "expression": "smile, closed mouth, looking at viewer, a quiet, reassuring bedside manner as she pauses during a routine check.",
+        "pose": "sitting on the edge of the hospital bed with knees together, feet on the floor, and her torso upright; her right arm is bent with the hand holding a closed clipboard against her thigh, her left arm relaxed with the hand resting beside her hip on the bed, her shoulders ease down, and her head stays level with her torso in a quiet bedside-check pause.",
+        "scene": "indoors, hospital room, hospital bed, window, curtains, closed door, iv stand. The near bed edge and clean linens fill the lower foreground with folds crossing beneath her seated weight; the middle bedside aisle is shaped by overlapping curtain folds and the IV stand, and the pale clinical wall recedes to a closed door and muted medical equipment in cooler shadow. Daylight through the curtains brightens the window side while the far corner stays a quieter grey, keeping the room readable without flattening into a pale backdrop.",
+        "lighting": "day, sunlight, window light, sidelighting. The frame-left curtained window is the key, putting lit planes on her right cheek, right sleeve, apron front and right knee while her left cheek, left torso and skirt folds fall into a clear shadow side; cool wall and linen bounce remain weaker. Curtain folds carry a sunlit edge against deeper fold shadow, and the far wall holds a low-contrast shadow plane behind the bed. Broad skin shading, matte cotton-twill and apron folds, small gold-buckle glints, and contact shadows under her hips, both gloved hands, and shoes on the floor keep the light on the forms.",
+        "composition": "straight-on, eye-level camera directly in front of her, with level perspective across the bed edge; she is centered and fills at least two-thirds of the frame height in a close full-body seated view, her torso and hips squared to the viewer and her head level toward the camera; the hospital bed edge anchors the lower frame.",
+        "negative": "emblem, logo, chest print, text, name tag, nurse cap, extra headwear, open clipboard, writing, extra medical tools, operating iv stand, wet clothes, bare feet, malformed hands, extra limbs"
+      },
+      "design_choices": {
+        "time_of_day": "昼",
+        "camera_angle": "平视",
+        "posture": "坐"
+      }
+    },
+    {
+      "id": "T18",
+      "character": "朱鸢",
+      "theme": "制服",
+      "image": "samples/t18_zhu_yuan_high_angle.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "高机位俯视 · 行走",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, name tag, school swimsuit, highleg, hat, beret, hood, extra limbs, deformed hands, malformed feet, twisted pleats, floating shoes, broken fence, thin metal rail, pool ladder, street, road, sidewalk, storefront, crosswalk, train station, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, zhu yuan, zenless zone zero\norange and black hair, high ponytail, M-shaped bangs, hair: ahoge, hair highlights, red eyes, pale skin, metallic grey handcuff-themed headband, orange bracelet, headphones\nheight of 175 cm, tall stature, large breasts, perky buttocks\nwhite shirt, grey blazer, blue pleated skirt, grey knee socks, brown loafers. School uniform: The white cotton shirt has a rounded white collar; the grey wool-blend blazer has metallic grey ring-shaped cuff trim; the blue wool-blend knife-pleated skirt sits high at the waist, with grey ribbed knit knee socks and brown leather loafers completing the lower line.\nsmile, closed mouth, calm, her face gentle and composed as she walks with quiet purpose across the rooftop.\nwalking, her weight settling onto her forward foot on the flat concrete rooftop, torso square to the walking direction, one arm relaxed at her side and the other slightly bent, face tilted up, school uniform kept neat.\nrooftop, safety fence, cityscape, concrete rooftop, rooftop access hut, water tank, clear evening sky. The flat concrete roof fills the foreground and middle distance, its broad surface meeting the safety fence at the edge; the access hut and water tank form overlapping rooftop masses with squared silhouettes. Beyond the fence, the city skyline rises in stepped clusters against the clear sunset sky, distant buildings lower in contrast and softened by the evening atmosphere.\nsunset, orange sky, evening, sidelighting, long shadows. The low sun from frame left lights the right side of her face, the white shirt collar and the grey blazer shoulder, while the opposite cheek and sleeve fall into a cooler shadow; the concrete roof holds a warm lit plane beside a broad shadowed plane from the water tank, and weaker sky fill keeps the shadow side readable. Broad skin shading stays natural, wool and cotton keep a matte finish, the metal cuff trim gives small hard glints, and compact contact shadows sit under the forward loafer.\nfrom above, the camera looks down from a rooftop access landing directly in front of her; in a close full-body crop she fills most of the frame height, centered as she walks toward the viewer, with her upturned face in the upper third and the flat roof receding beneath her.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 4.69,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "4b34630b900df70422be27329d09706dab57730da0f080de71f4ceed7a6f260e",
+      "structured_fields": {
+        "outfit": "white shirt, grey blazer, blue pleated skirt, grey knee socks, brown loafers. School uniform: The white cotton shirt has a rounded white collar; the grey wool-blend blazer has metallic grey ring-shaped cuff trim; the blue wool-blend knife-pleated skirt sits high at the waist, with grey ribbed knit knee socks and brown leather loafers completing the lower line.",
+        "expression": "smile, closed mouth, calm, her face gentle and composed as she walks with quiet purpose across the rooftop.",
+        "pose": "walking, her weight settling onto her forward foot on the flat concrete rooftop, torso square to the walking direction, one arm relaxed at her side and the other slightly bent, face tilted up, school uniform kept neat.",
+        "scene": "rooftop, safety fence, cityscape, concrete rooftop, rooftop access hut, water tank, clear evening sky. The flat concrete roof fills the foreground and middle distance, its broad surface meeting the safety fence at the edge; the access hut and water tank form overlapping rooftop masses with squared silhouettes. Beyond the fence, the city skyline rises in stepped clusters against the clear sunset sky, distant buildings lower in contrast and softened by the evening atmosphere.",
+        "lighting": "sunset, orange sky, evening, sidelighting, long shadows. The low sun from frame left lights the right side of her face, the white shirt collar and the grey blazer shoulder, while the opposite cheek and sleeve fall into a cooler shadow; the concrete roof holds a warm lit plane beside a broad shadowed plane from the water tank, and weaker sky fill keeps the shadow side readable. Broad skin shading stays natural, wool and cotton keep a matte finish, the metal cuff trim gives small hard glints, and compact contact shadows sit under the forward loafer.",
+        "composition": "from above, the camera looks down from a rooftop access landing directly in front of her; in a close full-body crop she fills most of the frame height, centered as she walks toward the viewer, with her upturned face in the upper third and the flat roof receding beneath her.",
+        "negative": "emblem, logo, chest print, text, name tag, school swimsuit, highleg, hat, beret, hood, extra limbs, deformed hands, malformed feet, twisted pleats, floating shoes, broken fence, thin metal rail, pool ladder, street, road, sidewalk, storefront, crosswalk, train station"
+      },
+      "design_choices": {
+        "time_of_day": "昏",
+        "camera_angle": "俯视",
+        "posture": "走动"
+      }
+    },
+    {
+      "id": "T21",
+      "character": "黄泉",
+      "theme": "旗袍",
+      "image": "samples/t21_acheron_reclining.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "侧卧支撑 · 室内",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, extra fingers, malformed hands, deformed limbs, floating katana, unsheathed sword, complex sword handling, wide-open side slit, bare thigh, highleg, shorts, pants, bare feet, cluttered teaware, empty backdrop, road, street, crosswalk, rain, wet clothes, sky indoors, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, acheron \\(honkai: star rail\\), honkai: star rail, @makucrp, (@pinocchio-p:0.65)\nlong dark purple hair that reaches her thighs, hair fringe that covers her left eye and frames her face, hair intakes, bright violet eyes with pink highlights and diamond shaped pupils, chain around her left wrist, large sword reminiscent of an ōdachi, katana as her main weapon\ntall woman, pale skin, large breasts\nblack cheongsam, red open jacket, black boots. The fitted black cheongsam is cut from matte silk satin with a standing collar, diagonal side fastening, and a chain-link edge along the long side opening; the cropped red open jacket has short sleeves and a matte crepe finish, and the black boots are low-heeled ankle boots.\nexpressionless, calm, serious, quietly composed as she rests with distant reserve.\nlying on her side on the cushioned daybed, torso and hips angled along the daybed, propped on her right elbow with her right forearm supporting her head; her head lifted and turned naturally from the supporting shoulder, her left hand resting loosely at her waist with the chain around her left wrist visible, her long sheathed katana lying quietly beside her on the daybed, and the long side opening lying closed along her resting leg.\nindoors, quiet traditional tea room, tatami floor, shoji screens, wooden lattice, low cushioned daybed. The daybed and tatami fill the near and middle layers; low wooden furniture and folded floor cushions stand in overlapping planes beyond it, and shoji screens with their wooden lattice close the background, with a narrow garden and foliage visible through a gap in the screens, its green muted by the paper-filtered distance.\nday, sunlight, shoji-filtered daylight, sidelighting, shoji shadow. Daylight enters through the shoji at camera left and lays broad angled light bands across the tatami and daybed; the lit plane runs along the left side of her face, the front shoulder and the red jacket sleeve, while the right cheek, the right side of the black cheongsam and the space beneath her torso fall into clear shadow. Her supporting forearm and hip seat dark contact shadows in the cushion, the sheathed katana casts a narrow shadow on the daybed, and a weaker green garden bounce grazes the screen edge. Matte silk satin on the cheongsam holds broad fold shading; the red crepe jacket keeps its muted red in shadow; the boots show a low sheen; the wrist chain gives a few small hard glints.\nstraight-on, the camera at eye level directly in front of her as she reclines; her torso and hips are angled across the daybed toward the right edge, her head lifted toward the camera in the left third, and her boots near the right. The close crop keeps her large in frame, at least two-thirds of the frame height at the shoulder and hip, with shoji screens and a narrow garden glimpse softly receding behind.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "e93b20b5e7128bfae1b131c5562f2d8fe28e67e53ee7a2126a7d478e323e9794",
+      "structured_fields": {
+        "outfit": "black cheongsam, red open jacket, black boots. The fitted black cheongsam is cut from matte silk satin with a standing collar, diagonal side fastening, and a chain-link edge along the long side opening; the cropped red open jacket has short sleeves and a matte crepe finish, and the black boots are low-heeled ankle boots.",
+        "expression": "expressionless, calm, serious, quietly composed as she rests with distant reserve.",
+        "pose": "lying on her side on the cushioned daybed, torso and hips angled along the daybed, propped on her right elbow with her right forearm supporting her head; her head lifted and turned naturally from the supporting shoulder, her left hand resting loosely at her waist with the chain around her left wrist visible, her long sheathed katana lying quietly beside her on the daybed, and the long side opening lying closed along her resting leg.",
+        "scene": "indoors, quiet traditional tea room, tatami floor, shoji screens, wooden lattice, low cushioned daybed. The daybed and tatami fill the near and middle layers; low wooden furniture and folded floor cushions stand in overlapping planes beyond it, and shoji screens with their wooden lattice close the background, with a narrow garden and foliage visible through a gap in the screens, its green muted by the paper-filtered distance.",
+        "lighting": "day, sunlight, shoji-filtered daylight, sidelighting, shoji shadow. Daylight enters through the shoji at camera left and lays broad angled light bands across the tatami and daybed; the lit plane runs along the left side of her face, the front shoulder and the red jacket sleeve, while the right cheek, the right side of the black cheongsam and the space beneath her torso fall into clear shadow. Her supporting forearm and hip seat dark contact shadows in the cushion, the sheathed katana casts a narrow shadow on the daybed, and a weaker green garden bounce grazes the screen edge. Matte silk satin on the cheongsam holds broad fold shading; the red crepe jacket keeps its muted red in shadow; the boots show a low sheen; the wrist chain gives a few small hard glints.",
+        "composition": "straight-on, the camera at eye level directly in front of her as she reclines; her torso and hips are angled across the daybed toward the right edge, her head lifted toward the camera in the left third, and her boots near the right. The close crop keeps her large in frame, at least two-thirds of the frame height at the shoulder and hip, with shoji screens and a narrow garden glimpse softly receding behind.",
+        "negative": "emblem, logo, chest print, text, watermark, signature, extra fingers, malformed hands, deformed limbs, floating katana, unsheathed sword, complex sword handling, wide-open side slit, bare thigh, highleg, shorts, pants, bare feet, cluttered teaware, empty backdrop, road, street, crosswalk, rain, wet clothes, sky indoors"
+      },
+      "design_choices": {
+        "time_of_day": "昼",
+        "camera_angle": "平视",
+        "posture": "躺",
+        "setting_name": "quiet traditional tea room"
+      }
+    },
+    {
+      "id": "T23",
+      "character": "黑天鹅",
+      "theme": "礼服",
+      "image": "samples/t23_black_swan_night.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "星夜露台 · 冷色光",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, extra fingers, deformed hands, broken wrist, floating bracelet, missing bracelet, wrong hair color, short hair, missing ponytail, mini skirt, pants, jeans, casual clothes, open skirt front, bare legs, sandals visible, daylight, sun, rain, wet clothes, cluttered background, empty background, border, frame, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, black swan \\(honkai: star rail\\), honkai: star rail\nlong, flowing lavender hair reaching the thighs, hair ends that fade into a darker shade and are slightly curled, long bangs framing the face and curving slightly into the cheeks, loose, small ponytail on the right side draping from the shoulder down to the chest, violet and yellow eyes, eyes with upper purple and lower gold, warm smile on the face, golden bracelet on the right wrist, four-pointed star motifs on the bracelet\npale skin, large breasts\nblack evening gown, red belt, black heels. The black evening gown is cut with an off-shoulder portrait neckline, a fitted bodice, and a floor-length mermaid skirt in fluid silk crepe; the red satin belt is tied in a flat bow at the waist.\nsmile, closed mouth, gentle smile, quietly warm and welcoming, her lifted face serene.\nsitting on the broad stone bench, knees held together and angled to one side, the floor-length mermaid skirt closed and gathered around her legs; her right hand rests flat on the bench beside her hip, while her left hand rests over her lap; she tilts her face up and lifts her eyes upward.\nhorizon, sky, starry sky, night, dark sea, seaside villa terrace, stone balustrade, potted shrubs. Pale stone tiles and the broad stone bench form the near terrace, while the low balustrade and clipped shrubs overlap the dark sea in the middle distance. The sea recedes to a clear star-filled horizon across the upper quarter, its far contrast muted against the night sky.\nnight, night sky, starry sky, sidelighting, cool moonlight, warm lantern fill. High moonlight from the front-right makes a silver lit plane on the right side of her face, her right shoulder, and the near top edge of the stone bench, while the left side of her face, left shoulder, and the bench front stay in cool blue-black shadow. A weaker amber lantern reflection touches the red satin bow and a small gold glint at the bracelet, and contact shadows pool beneath her hips and right hand; the balustrade top catches moonlight while its body throws a dark cast shadow across the pale tiles. Black silk crepe shows broad cool sheen with deep folds, skin keeps matte lit-to-shadow shading, stone stays chalky, and the sea remains a dark low-reflection plane.\nfrom above, high-angle close full-body composition, camera above her eye level and slightly to her front-right, looking down so the diagonal of her shoulders, lap, and gathered skirt leads across the frame; she fills at least two thirds of the frame height, centered slightly off-center, with the bench anchoring the lower frame and a clear gap behind her lifted face.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "a40a2059151f7bce18a195ee0cd35c770387f08c1bf062837d6f787d7592a689",
+      "structured_fields": {
+        "outfit": "black evening gown, red belt, black heels. The black evening gown is cut with an off-shoulder portrait neckline, a fitted bodice, and a floor-length mermaid skirt in fluid silk crepe; the red satin belt is tied in a flat bow at the waist.",
+        "expression": "smile, closed mouth, gentle smile, quietly warm and welcoming, her lifted face serene.",
+        "pose": "sitting on the broad stone bench, knees held together and angled to one side, the floor-length mermaid skirt closed and gathered around her legs; her right hand rests flat on the bench beside her hip, while her left hand rests over her lap; she tilts her face up and lifts her eyes upward.",
+        "scene": "horizon, sky, starry sky, night, dark sea, seaside villa terrace, stone balustrade, potted shrubs. Pale stone tiles and the broad stone bench form the near terrace, while the low balustrade and clipped shrubs overlap the dark sea in the middle distance. The sea recedes to a clear star-filled horizon across the upper quarter, its far contrast muted against the night sky.",
+        "lighting": "night, night sky, starry sky, sidelighting, cool moonlight, warm lantern fill. High moonlight from the front-right makes a silver lit plane on the right side of her face, her right shoulder, and the near top edge of the stone bench, while the left side of her face, left shoulder, and the bench front stay in cool blue-black shadow. A weaker amber lantern reflection touches the red satin bow and a small gold glint at the bracelet, and contact shadows pool beneath her hips and right hand; the balustrade top catches moonlight while its body throws a dark cast shadow across the pale tiles. Black silk crepe shows broad cool sheen with deep folds, skin keeps matte lit-to-shadow shading, stone stays chalky, and the sea remains a dark low-reflection plane.",
+        "composition": "from above, high-angle close full-body composition, camera above her eye level and slightly to her front-right, looking down so the diagonal of her shoulders, lap, and gathered skirt leads across the frame; she fills at least two thirds of the frame height, centered slightly off-center, with the bench anchoring the lower frame and a clear gap behind her lifted face.",
+        "negative": "emblem, logo, chest print, text, watermark, signature, extra fingers, deformed hands, broken wrist, floating bracelet, missing bracelet, wrong hair color, short hair, missing ponytail, mini skirt, pants, jeans, casual clothes, open skirt front, bare legs, sandals visible, daylight, sun, rain, wet clothes, cluttered background, empty background, border, frame"
+      },
+      "design_choices": {
+        "time_of_day": "夜",
+        "camera_angle": "俯视",
+        "posture": "坐",
+        "setting_name": "seaside villa terrace"
+      }
+    },
+    {
+      "id": "T25",
+      "character": "申鹤",
+      "theme": "四季常装",
+      "image": "samples/t25_shenhe_autumn_rain.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "秋雨公园 · 持伞行走",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, hat, beret, hood, green leaves, cherry blossoms, spring, green grass, blue flowers, swimsuit, swimwear, highleg, school swimsuit, name tag, wet hair, soaked clothes, bare legs, detached umbrella, floating umbrella, extra hands, extra fingers, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, shenhe \\(genshin impact\\), genshin impact, @eluthel, (@nogreen:0.65)\ncyan downturned eyes, gradient gray-white long hair, long hair half-covering the right eye, gray lower portion of the long hair tied into a ponytail, red rope binding the ponytail, connected to an ice-blue Vision, hair ornament on the right side in the style of a Glaze Lily, earrings on both ears in the form of Wanzi knots\nred open cardigan, black turtleneck sweater, brown skirt, black tights, brown boots, red scarf. The red wool open cardigan has a long straight silhouette over the black knit turtleneck sweater and brown wool knee-length skirt; the black sweater has a chunky cable-knit front, and the red scarf has a lily-petal scalloped edge and a thin red cord tie. The black tights and brown leather boots complete the warm autumn layer.\nexpressionless, closed mouth, serious, her face composed and calm while she walks through the evening rain.\nwalking forward along the path, one hand around the umbrella handle held above her head, the other hand relaxed at her side, shoulders slightly turned along the path, head level with a slight natural turn; the umbrella keeps her hair and clothes dry while rain falls around her.\nrainy autumn park, evening, rain, grey sky, wet path, puddles, fallen leaves, ginkgo and maple trees. Near the camera, the wet path runs between shallow puddles and scattered yellow leaves; dark trunks, a wooden bench and a park lamp sit among golden ginkgo and orange maple canopies in the middle distance, with rain streaks crossing the foreground. Farther back, overlapping tree crowns keep their irregular shapes as they lose contrast against the grey evening sky.\nevening, rain, wet grey sidelighting, wet shadow: cool rain light from the upper left of the frame lights her left cheek, the near red cardigan panel and the black cable-knit front, while her right side and the far cardigan panel fall into cooler shadow; the amber park lamp stays a weaker reflected accent in puddles and wet leaves, the umbrella canopy holds a lit upper plane against its darker underside, and small wet highlights on the brown leather boots meet contact shadows on the path.\ndutch angle, camera at waist height in a front three-quarter view slightly to her left, the framing tilted diagonally with the perspective running from the lower foreground into depth; she fills about two-thirds of the frame height, centered slightly off-axis, with the umbrella canopy and upper body prominent and a close full-body crop ending at her boots.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "7f716e6a638f65208295c52d0d3179bef30a1fe1402bf28880aa899de0df37b3",
+      "structured_fields": {
+        "outfit": "red open cardigan, black turtleneck sweater, brown skirt, black tights, brown boots, red scarf. The red wool open cardigan has a long straight silhouette over the black knit turtleneck sweater and brown wool knee-length skirt; the black sweater has a chunky cable-knit front, and the red scarf has a lily-petal scalloped edge and a thin red cord tie. The black tights and brown leather boots complete the warm autumn layer.",
+        "expression": "expressionless, closed mouth, serious, her face composed and calm while she walks through the evening rain.",
+        "pose": "walking forward along the path, one hand around the umbrella handle held above her head, the other hand relaxed at her side, shoulders slightly turned along the path, head level with a slight natural turn; the umbrella keeps her hair and clothes dry while rain falls around her.",
+        "scene": "rainy autumn park, evening, rain, grey sky, wet path, puddles, fallen leaves, ginkgo and maple trees. Near the camera, the wet path runs between shallow puddles and scattered yellow leaves; dark trunks, a wooden bench and a park lamp sit among golden ginkgo and orange maple canopies in the middle distance, with rain streaks crossing the foreground. Farther back, overlapping tree crowns keep their irregular shapes as they lose contrast against the grey evening sky.",
+        "lighting": "evening, rain, wet grey sidelighting, wet shadow: cool rain light from the upper left of the frame lights her left cheek, the near red cardigan panel and the black cable-knit front, while her right side and the far cardigan panel fall into cooler shadow; the amber park lamp stays a weaker reflected accent in puddles and wet leaves, the umbrella canopy holds a lit upper plane against its darker underside, and small wet highlights on the brown leather boots meet contact shadows on the path.",
+        "composition": "dutch angle, camera at waist height in a front three-quarter view slightly to her left, the framing tilted diagonally with the perspective running from the lower foreground into depth; she fills about two-thirds of the frame height, centered slightly off-axis, with the umbrella canopy and upper body prominent and a close full-body crop ending at her boots.",
+        "negative": "emblem, logo, chest print, text, hat, beret, hood, green leaves, cherry blossoms, spring, green grass, blue flowers, swimsuit, swimwear, highleg, school swimsuit, name tag, wet hair, soaked clothes, bare legs, detached umbrella, floating umbrella, extra hands, extra fingers"
+      },
+      "design_choices": {
+        "time_of_day": "昏",
+        "camera_angle": "倾斜",
+        "posture": "走动",
+        "setting_name": "rainy autumn park path"
+      }
+    },
+    {
+      "id": "T33",
+      "character": "玛奇玛",
+      "theme": "冬景",
+      "image": "samples/t33_makima_snow_night.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "雪夜 · 冷暖光",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, bare legs, bare feet, knees apart, wide-knee squat, skirt opening, pleated skirt flying open, floating scarf, extra fingers, deformed hands, malformed knees, text, watermark, signature, emblem, logo, chest print, city street, road, sidewalk, crosswalk, green leaves, cherry blossoms, autumn leaves, swimsuit, swimwear, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, makima \\(chainsaw man\\), chainsaw man, @dog-san, (@shigureszku:0.65)\neyes with white sclera and orange-yellow rings on the irises, long red hair, bangs on both sides at the front, hair often tied in a single braid\nblack open jacket, green turtleneck sweater, grey pleated skirt, black tights, brown boots, green scarf, black gloves. The black open jacket is a long wool coat with wide lapels, worn over a ribbed green turtleneck; the green scarf has fringed ends, the grey skirt is pleated, and black tights and black gloves finish the winter set.\ngentle smile, closed mouth, calm, a quiet, composed face as she listens to the hush of snow.\nsquatting, knees together, one gloved hand resting on a knee while the other arm is bent with the hand at the scarf by her throat; shoulders drawn in against the cold, head lifted slightly toward the falling snow, the closed pleated skirt gathered around her legs.\noutdoors, snowy shrine courtyard, night, snowing, snowflakes, snow, grey sky, stone lantern. Snow-covered stone paving spreads beneath the squat, with irregular drifts around the base of a weathered wooden fence and bare tree trunks. The shrine roof and dark tree line overlap in the upper third under falling snow, and a narrow strip of night sky shows at the top edge.\nnight, snowing, grey sky, sidelighting, cold blue ambient light, warm stone-lantern glow as the key. Warm lantern light reaches from the left side of the courtyard, catching the left cheek and eye of her lifted face, the black wool coat's lit front plane and the green scarf, while the right cheek, coat panel and grey pleated skirt sit in cool blue shadow. Snow-covered paving holds a warm pool near her squat with blue shadow beyond; contact shadows gather under the gloved hand on her knee and where the skirt presses around her legs.\nfrom above, the camera is positioned slightly in front of and above her at standing height, looking down on a close three-quarter front view; her squatting figure fills most of the frame height, with her knees near the lower edge and her shoulders and scarf in the upper third.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "fb9e8e391a847cc70269de9272bb571b51f922506ef0ddcdc32ab604a3ffad47",
+      "structured_fields": {
+        "outfit": "black open jacket, green turtleneck sweater, grey pleated skirt, black tights, brown boots, green scarf, black gloves. The black open jacket is a long wool coat with wide lapels, worn over a ribbed green turtleneck; the green scarf has fringed ends, the grey skirt is pleated, and black tights and black gloves finish the winter set.",
+        "expression": "gentle smile, closed mouth, calm, a quiet, composed face as she listens to the hush of snow.",
+        "pose": "squatting, knees together, one gloved hand resting on a knee while the other arm is bent with the hand at the scarf by her throat; shoulders drawn in against the cold, head lifted slightly toward the falling snow, the closed pleated skirt gathered around her legs.",
+        "scene": "outdoors, snowy shrine courtyard, night, snowing, snowflakes, snow, grey sky, stone lantern. Snow-covered stone paving spreads beneath the squat, with irregular drifts around the base of a weathered wooden fence and bare tree trunks. The shrine roof and dark tree line overlap in the upper third under falling snow, and a narrow strip of night sky shows at the top edge.",
+        "lighting": "night, snowing, grey sky, sidelighting, cold blue ambient light, warm stone-lantern glow as the key. Warm lantern light reaches from the left side of the courtyard, catching the left cheek and eye of her lifted face, the black wool coat's lit front plane and the green scarf, while the right cheek, coat panel and grey pleated skirt sit in cool blue shadow. Snow-covered paving holds a warm pool near her squat with blue shadow beyond; contact shadows gather under the gloved hand on her knee and where the skirt presses around her legs.",
+        "composition": "from above, the camera is positioned slightly in front of and above her at standing height, looking down on a close three-quarter front view; her squatting figure fills most of the frame height, with her knees near the lower edge and her shoulders and scarf in the upper third.",
+        "negative": "bare legs, bare feet, knees apart, wide-knee squat, skirt opening, pleated skirt flying open, floating scarf, extra fingers, deformed hands, malformed knees, text, watermark, signature, emblem, logo, chest print, city street, road, sidewalk, crosswalk, green leaves, cherry blossoms, autumn leaves, swimsuit, swimwear"
+      },
+      "design_choices": {
+        "time_of_day": "夜",
+        "camera_angle": "俯视",
+        "posture": "半蹲",
+        "setting_name": "snowy shrine courtyard"
+      }
+    },
+    {
+      "id": "TN1",
+      "character": "知更鸟",
+      "theme": "礼服",
+      "image": "samples/tn1_robin_high_angle.jpg",
+      "source_kind": "v2_integration_2026-11-09",
+      "description": "高机位俯视 · 跪姿",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, text, emblem, logo, chest print, bare feet, visible high heels, open skirt, thigh slit, short skirt, extra fingers, malformed hands, extra hands, missing halo, extra halo, wrong earring, bracelet on left hand, wet clothes, rain, outdoor street, thin metal rail, ladder rail, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, robin \\(honkai: star rail\\), honkai: star rail, @saltnvalk, (@nekojira:0.65)\nsilver hair, curly hair, hair reaching her hips, hair slightly curled at the bottom, hair: half-up hairstyle, hair: partially-tied bun, left side of her bangs behind her ear, hair: single thin lock in front of her left ear reaching her chin, green eyes, drooping eyes, red eyeshadow, three rhinestones under her left eye, halo slightly tilted to the right, golden six-pointed star earring in her left ear, elaborate neck ornaments, bracelet on her right hand\nhead wings, medium breasts\npurple mermaid evening dress, white opera gloves, white heels. The purple mermaid evening dress has a deep violet satin bodice and pale lavender pleated skirt, with a draped one-shoulder neckline and a matching waist sash; the white opera gloves are unadorned.\nsmile, closed mouth, with a serene, welcoming warmth as she offers a quiet greeting.\nkneeling on a low velvet cushion, hands loosely clasped over her lap, shoulders relaxed, head lifted to look up; the long mermaid skirt stays closed and gathered around her legs.\nindoors, grand hotel suite, tall window, velvet chaise, patterned rug, marble floor, wall sconces. The patterned rug and low velvet cushion anchor the near floor in overlapping floral shapes, with the cushion pressed into the pile; the chaise's rounded velvet back and seat overlap in the middle distance, its fabric holding a deep absorbent shadow, while the marble floor catches a subdued reflection toward the tall window. Distant rooftops beyond the glass keep blocky silhouettes in muted evening color, and the wall sconces pool amber light on the surrounding walls.\nevening, sunset, window light, sidelighting: the warm key enters from the tall window at camera right and lays a clear lit plane across the left side of her upturned face and near shoulder, keeping broad natural skin shading, with the deep violet satin bodice catching cloth sheen, while the right cheek and gathered pale lavender skirt folds fall into a deeper warm shadow; weaker amber sconce fill keeps that shadow readable. White opera gloves stay matte, small hard glints sit on the metal earring and neck ornaments, and contact shadows pool where the cushion meets the rug and beneath her clasped hands; a window-frame shadow cuts a quiet shape across the marble floor.\nfrom above, the camera is high near standing height and looks down across her front three-quarter presentation with her left side slightly toward the lens; her upturned face sits near the center, the kneeling silhouette tapers into the lower frame, and she fills about two thirds of the frame height in a close full-body crop.\ndetailed background",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "bfd9933f8672968eb0f921dee9d71e8baa5a255e99619127e7419bf153d5e2a3",
+      "structured_fields": {
+        "outfit": "purple mermaid evening dress, white opera gloves, white heels. The purple mermaid evening dress has a deep violet satin bodice and pale lavender pleated skirt, with a draped one-shoulder neckline and a matching waist sash; the white opera gloves are unadorned.",
+        "expression": "smile, closed mouth, with a serene, welcoming warmth as she offers a quiet greeting.",
+        "pose": "kneeling on a low velvet cushion, hands loosely clasped over her lap, shoulders relaxed, head lifted to look up; the long mermaid skirt stays closed and gathered around her legs.",
+        "scene": "indoors, grand hotel suite, tall window, velvet chaise, patterned rug, marble floor, wall sconces. The patterned rug and low velvet cushion anchor the near floor in overlapping floral shapes, with the cushion pressed into the pile; the chaise's rounded velvet back and seat overlap in the middle distance, its fabric holding a deep absorbent shadow, while the marble floor catches a subdued reflection toward the tall window. Distant rooftops beyond the glass keep blocky silhouettes in muted evening color, and the wall sconces pool amber light on the surrounding walls.",
+        "lighting": "evening, sunset, window light, sidelighting: the warm key enters from the tall window at camera right and lays a clear lit plane across the left side of her upturned face and near shoulder, keeping broad natural skin shading, with the deep violet satin bodice catching cloth sheen, while the right cheek and gathered pale lavender skirt folds fall into a deeper warm shadow; weaker amber sconce fill keeps that shadow readable. White opera gloves stay matte, small hard glints sit on the metal earring and neck ornaments, and contact shadows pool where the cushion meets the rug and beneath her clasped hands; a window-frame shadow cuts a quiet shape across the marble floor.",
+        "composition": "from above, the camera is high near standing height and looks down across her front three-quarter presentation with her left side slightly toward the lens; her upturned face sits near the center, the kneeling silhouette tapers into the lower frame, and she fills about two thirds of the frame height in a close full-body crop.",
+        "negative": "text, emblem, logo, chest print, bare feet, visible high heels, open skirt, thigh slit, short skirt, extra fingers, malformed hands, extra hands, missing halo, extra halo, wrong earring, bracelet on left hand, wet clothes, rain, outdoor street, thin metal rail, ladder rail"
+      },
+      "design_choices": {
+        "time_of_day": "昏",
+        "camera_angle": "俯视",
+        "posture": "跪",
+        "setting_name": "grand hotel suite"
+      }
+    },
+    {
+      "id": "S01",
+      "character": "长离",
+      "theme": "四季常装",
+      "image": "samples/s01_changli_rain_night.jpg",
+      "source_kind": "earlier_v2_supplement",
+      "description": "雨夜廊街 · 灯光反射",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, hat, beret, hood, swimsuit, swimwear, summer, cherry blossoms, green leaves, green grass, blue flowers, hydrangea, morning glory, sunflower, lotus, umbrella, extra fingers, extra hands, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, changli \\(wuthering waves\\), wuthering waves, @celtreny, (@jiuchuansi:0.65)\nhair is long and red, hair is tied in a long ponytail, eyes are golden with multiple black rings and black pupils, face always carries a gentle smile, accessory includes golden three-ring knot hair ornaments on both sides of the hair\nbody skin tone is redder and rosier than ordinary people, body has vermilion burn marks on the left arm\ngreen knit sweater, white shirt, brown open jacket, brown plaid skirt, black tights, purple scarf, purple shoulder bag. The green sweater has a chunky cable-knit front; the brown open jacket is made of water-resistant cotton; the brown plaid skirt is pleated with a three-ring knot-shaped side buckle. The purple scarf is soft wool, and the purple shoulder bag is smooth leather.\nlight smile, calm, gently attentive while waiting beneath the eaves.\nShe stands under the eaves at the edge of the covered wooden arcade, leaning lightly against the railing at her side with her weight settled on one leg; one hand rests on the railing while the other lightly holds the purple shoulder-bag strap. Her torso angles slightly toward the viewer and the arcade interior, and her head turns toward the viewer with a natural neck turn.\nrain, grey sky, night, outdoors, old town covered wooden arcade, wet stone street, warm paper lanterns, wooden railing; the arcade roofline crosses the upper third, with a receding row of shopfronts and golden ginkgo and orange maple trees beyond the eaves.\nnight, sidelighting, shadow; a single warm paper lantern at her left lights her from the side, so the left side of her face, scarf and jacket glow warm while the right side falls into deep shadow; only a faint cool rain fill reaches the shadow side, keeping a strong light-and-dark contrast, and the wet stone street reflects the lantern.\nEye-level three-quarter front view from slightly to her left, medium shot from thighs up; she is placed on the right third, with the wooden railing at the lower side and the arcade forms receding behind her; the roofline crosses the upper third.",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110302,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "a0d283e2729b5eb3bc5e615eb217b6491be98054bf19193bf51505f4f364f4ab"
+    },
+    {
+      "id": "S02",
+      "character": "长离",
+      "theme": "冬景",
+      "image": "samples/s02_changli_snow_back.jpg",
+      "source_kind": "earlier_v2_supplement",
+      "description": "雪中街灯 · 背身回眸",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, extra fingers, fused fingers, distorted lamppost, floating hand, detached hand, extra people, santa hat, short hair, twin tails, missing hair ornaments, bare legs, missing fur trim, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, changli \\(wuthering waves\\), wuthering waves, @celtreny, (@jiuchuansi:0.65)\nhair is long and red, hair is tied in a long ponytail, hair ends are flame-colored, eyes are golden with multiple black rings and black pupils, face has a flushed complexion, face always carries a gentle smile, accessory includes golden three-ring knot hair ornaments on both sides of the hair\nbody skin tone is redder and rosier than ordinary people, body has vermilion burn marks on the left arm\nwhite longline jacket, green sweater, black pleated skirt, black tights, yellow belt, christmas outfit; the white longline jacket has white fur trim at the collar and cuffs, and the yellow belt cinches the jacket at the waist.\nlight smile, calm and gently welcoming as she looks back toward the viewer.\nShe stands with her feet planted on the path, torso facing down the path, left arm slightly bent so her hand rests lightly on the lamppost beside her at her left, right arm relaxed at her side, and her head turned back over her right shoulder.\nHorizon line obscured by falling snow within the upper quarter, grey dusk sky under low snow clouds; snowing, snowflakes, snow, grey sky; a snowy park path recedes between low snow-covered hedges and dark evergreen trunks, with the lamppost at frame left and the snowman in the middle distance; falling snow fills the frame, and far tree silhouettes fade in value while keeping irregular edges.\nevening; warm lamplight from frame left lights her turned face, shoulder and the white fur jacket, with cool grey dusk light filling the rest of the scene. A soft shadow falls across the right side of her back and the snowy path.\nfrom behind, rear-view medium shot at shoulder height, camera directly behind her, with her back filling the foreground and her turned face visible over her right shoulder; the lamppost hand anchors frame left, the snowman recedes softly in the middle distance, and the crop reaches mid-thigh.",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "stable_diffusion",
+      "workflow": "anima_flow",
+      "sampler_node": "AnimaFlowCorrectiveSampler",
+      "parameters": {
+        "seed": 2026110301,
+        "steps": 50,
+        "cfg": 3.7,
+        "cfg_mode": "const",
+        "flow_solver": "flow_euler",
+        "flow_schedule": "flow_diffusers_linear_shift",
+        "flow_shift": 3.0,
+        "denoise": 1.0,
+        "add_noise": true
+      },
+      "pair_sha256": "8663a628cf62c72dcebbeb7515eb57517489da1010c7948a06187b100966f404"
+    },
+    {
+      "id": "C01",
+      "character": "春丽",
+      "theme": "运动",
+      "image": "samples/c01_chun_li_seed2026110901.jpg",
+      "source_kind": "custom_menu_live_2026-11-09",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "lumina2",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "model_sampling_shift": 3.0,
+      "workflow": "api",
+      "sampler_node": "KSampler",
+      "parameters": {
+        "seed": 2026110901,
+        "steps": 50,
+        "cfg": 3.7,
+        "sampler_name": "euler",
+        "scheduler": "sgm_uniform",
+        "denoise": 1.0
+      },
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, highleg, swimsuit, qipao, dress, loose long hair, unbound hair, wet hair, wet clothes, rain, street, road, crosswalk, extra limbs, deformed hands, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, chun-li, street fighter, @uriah-oyu, (@mokoiscat:0.65)\nbrown or black hair, hair almost always done up in a double bun, brown eyes, spiked bracelets, white bun covers, usually wears earrings\nblue open jacket, white sports bra, blue shorts, white sneakers. This sportswear set uses a blue open jacket with short sleeves and small spike-shaped tabs along each cuff in matte stretch fabric, blue shorts in matching stretch fabric, a plain white stretch-knit sports bra, and plain white sneakers.\nsmile, closed mouth; quiet contentment as she rests on the sand.\nlying on her side on the beach sand, body turned sideways with her shoulders and hips in profile, her torso propped on one elbow and that forearm pressed into the sand for support, her free hand resting on her hip, her legs extended along the sand with one ankle crossed over the other, and her head turned toward the viewer with a natural neck turn.\nhorizon, sky, beach, ocean, sand, sunset, evening. The horizon crosses the upper third of the frame; the open sea shifts from dark blue-green near the breaking surf to warm reflected orange at the horizon, with irregular white surf lines and a shoreline that recedes behind her. Rippled dry sand and shallow tidal channels fill the near foreground, overlapping toward wet sand and a few dark rocks where the waves break, while the far water and clear evening sky hold their shapes with reduced contrast.\nsunset, orange sky, evening, low sidelighting, long shadows. Low sun from the ocean side rakes across broad skin shading on the side of her turned face facing the light, the matte fabric folds of her jacket sleeve and shorts side panel, setting a clear warm lit plane against a deeper shadow on the near side of her face, waist and sand beneath her propped forearm. Weaker sky and sand bounce keep the shadow readable; contact shadows gather under the forearm and along the reclining body, while wet sand and broken surf carry broad orange reflections and the bracelets and earrings catch small hard glints.\nfrom side, the camera is low at her body level and directly beside her reclining figure; a close full-body crop keeps her large in the frame, filling about two thirds of the frame height, with her reclining length running diagonally from the lower left toward the upper right and placed slightly right of center; her shoulders and hips read in profile while her head turns toward the viewer, and the horizon crosses the upper third behind her.\ndetailed background",
+      "pair_sha256": "3a37fe1b28d5a84aba311f7d775d782de12c10dc03b44e6906d3875c2bb0bdf1",
+      "aesthetic_score": 2.301,
+      "selected": false
+    },
+    {
+      "id": "C02",
+      "character": "春丽",
+      "theme": "运动",
+      "image": "samples/c02_chun_li_seed2026110902.jpg",
+      "source_kind": "custom_menu_live_2026-11-09",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "lumina2",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "model_sampling_shift": 3.0,
+      "workflow": "api",
+      "sampler_node": "KSampler",
+      "parameters": {
+        "seed": 2026110902,
+        "steps": 50,
+        "cfg": 3.7,
+        "sampler_name": "euler",
+        "scheduler": "sgm_uniform",
+        "denoise": 1.0
+      },
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, highleg, swimsuit, qipao, dress, loose long hair, unbound hair, wet hair, wet clothes, rain, street, road, crosswalk, extra limbs, deformed hands, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, chun-li, street fighter, @uriah-oyu, (@mokoiscat:0.65)\nbrown or black hair, hair almost always done up in a double bun, brown eyes, spiked bracelets, white bun covers, usually wears earrings\nblue open jacket, white sports bra, blue shorts, white sneakers. This sportswear set uses a blue open jacket with short sleeves and small spike-shaped tabs along each cuff in matte stretch fabric, blue shorts in matching stretch fabric, a plain white stretch-knit sports bra, and plain white sneakers.\nsmile, closed mouth; quiet contentment as she rests on the sand.\nlying on her side on the beach sand, body turned sideways with her shoulders and hips in profile, her torso propped on one elbow and that forearm pressed into the sand for support, her free hand resting on her hip, her legs extended along the sand with one ankle crossed over the other, and her head turned toward the viewer with a natural neck turn.\nhorizon, sky, beach, ocean, sand, sunset, evening. The horizon crosses the upper third of the frame; the open sea shifts from dark blue-green near the breaking surf to warm reflected orange at the horizon, with irregular white surf lines and a shoreline that recedes behind her. Rippled dry sand and shallow tidal channels fill the near foreground, overlapping toward wet sand and a few dark rocks where the waves break, while the far water and clear evening sky hold their shapes with reduced contrast.\nsunset, orange sky, evening, low sidelighting, long shadows. Low sun from the ocean side rakes across broad skin shading on the side of her turned face facing the light, the matte fabric folds of her jacket sleeve and shorts side panel, setting a clear warm lit plane against a deeper shadow on the near side of her face, waist and sand beneath her propped forearm. Weaker sky and sand bounce keep the shadow readable; contact shadows gather under the forearm and along the reclining body, while wet sand and broken surf carry broad orange reflections and the bracelets and earrings catch small hard glints.\nfrom side, the camera is low at her body level and directly beside her reclining figure; a close full-body crop keeps her large in the frame, filling about two thirds of the frame height, with her reclining length running diagonally from the lower left toward the upper right and placed slightly right of center; her shoulders and hips read in profile while her head turns toward the viewer, and the horizon crosses the upper third behind her.\ndetailed background",
+      "pair_sha256": "3a37fe1b28d5a84aba311f7d775d782de12c10dc03b44e6906d3875c2bb0bdf1",
+      "aesthetic_score": 1.949,
+      "selected": false
+    },
+    {
+      "id": "C03",
+      "character": "春丽",
+      "theme": "运动",
+      "image": "samples/c03_chun_li_seed2026110903.jpg",
+      "source_kind": "custom_menu_live_2026-11-09",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "lumina2",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "model_sampling_shift": 3.0,
+      "workflow": "api",
+      "sampler_node": "KSampler",
+      "parameters": {
+        "seed": 2026110903,
+        "steps": 50,
+        "cfg": 3.7,
+        "sampler_name": "euler",
+        "scheduler": "sgm_uniform",
+        "denoise": 1.0
+      },
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, highleg, swimsuit, qipao, dress, loose long hair, unbound hair, wet hair, wet clothes, rain, street, road, crosswalk, extra limbs, deformed hands, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, chun-li, street fighter, @uriah-oyu, (@mokoiscat:0.65)\nbrown or black hair, hair almost always done up in a double bun, brown eyes, spiked bracelets, white bun covers, usually wears earrings\nblue open jacket, white sports bra, blue shorts, white sneakers. This sportswear set uses a blue open jacket with short sleeves and small spike-shaped tabs along each cuff in matte stretch fabric, blue shorts in matching stretch fabric, a plain white stretch-knit sports bra, and plain white sneakers.\nsmile, closed mouth; quiet contentment as she rests on the sand.\nlying on her side on the beach sand, body turned sideways with her shoulders and hips in profile, her torso propped on one elbow and that forearm pressed into the sand for support, her free hand resting on her hip, her legs extended along the sand with one ankle crossed over the other, and her head turned toward the viewer with a natural neck turn.\nhorizon, sky, beach, ocean, sand, sunset, evening. The horizon crosses the upper third of the frame; the open sea shifts from dark blue-green near the breaking surf to warm reflected orange at the horizon, with irregular white surf lines and a shoreline that recedes behind her. Rippled dry sand and shallow tidal channels fill the near foreground, overlapping toward wet sand and a few dark rocks where the waves break, while the far water and clear evening sky hold their shapes with reduced contrast.\nsunset, orange sky, evening, low sidelighting, long shadows. Low sun from the ocean side rakes across broad skin shading on the side of her turned face facing the light, the matte fabric folds of her jacket sleeve and shorts side panel, setting a clear warm lit plane against a deeper shadow on the near side of her face, waist and sand beneath her propped forearm. Weaker sky and sand bounce keep the shadow readable; contact shadows gather under the forearm and along the reclining body, while wet sand and broken surf carry broad orange reflections and the bracelets and earrings catch small hard glints.\nfrom side, the camera is low at her body level and directly beside her reclining figure; a close full-body crop keeps her large in the frame, filling about two thirds of the frame height, with her reclining length running diagonally from the lower left toward the upper right and placed slightly right of center; her shoulders and hips read in profile while her head turns toward the viewer, and the horizon crosses the upper third behind her.\ndetailed background",
+      "pair_sha256": "3a37fe1b28d5a84aba311f7d775d782de12c10dc03b44e6906d3875c2bb0bdf1",
+      "aesthetic_score": 2.446,
+      "selected": true
+    },
+    {
+      "id": "C04",
+      "character": "春丽",
+      "theme": "运动",
+      "image": "samples/c04_chun_li_seed2026110904.jpg",
+      "source_kind": "custom_menu_live_2026-11-09",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "lumina2",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "model_sampling_shift": 3.0,
+      "workflow": "api",
+      "sampler_node": "KSampler",
+      "parameters": {
+        "seed": 2026110904,
+        "steps": 50,
+        "cfg": 3.7,
+        "sampler_name": "euler",
+        "scheduler": "sgm_uniform",
+        "denoise": 1.0
+      },
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, highleg, swimsuit, qipao, dress, loose long hair, unbound hair, wet hair, wet clothes, rain, street, road, crosswalk, extra limbs, deformed hands, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, chun-li, street fighter, @uriah-oyu, (@mokoiscat:0.65)\nbrown or black hair, hair almost always done up in a double bun, brown eyes, spiked bracelets, white bun covers, usually wears earrings\nblue open jacket, white sports bra, blue shorts, white sneakers. This sportswear set uses a blue open jacket with short sleeves and small spike-shaped tabs along each cuff in matte stretch fabric, blue shorts in matching stretch fabric, a plain white stretch-knit sports bra, and plain white sneakers.\nsmile, closed mouth; quiet contentment as she rests on the sand.\nlying on her side on the beach sand, body turned sideways with her shoulders and hips in profile, her torso propped on one elbow and that forearm pressed into the sand for support, her free hand resting on her hip, her legs extended along the sand with one ankle crossed over the other, and her head turned toward the viewer with a natural neck turn.\nhorizon, sky, beach, ocean, sand, sunset, evening. The horizon crosses the upper third of the frame; the open sea shifts from dark blue-green near the breaking surf to warm reflected orange at the horizon, with irregular white surf lines and a shoreline that recedes behind her. Rippled dry sand and shallow tidal channels fill the near foreground, overlapping toward wet sand and a few dark rocks where the waves break, while the far water and clear evening sky hold their shapes with reduced contrast.\nsunset, orange sky, evening, low sidelighting, long shadows. Low sun from the ocean side rakes across broad skin shading on the side of her turned face facing the light, the matte fabric folds of her jacket sleeve and shorts side panel, setting a clear warm lit plane against a deeper shadow on the near side of her face, waist and sand beneath her propped forearm. Weaker sky and sand bounce keep the shadow readable; contact shadows gather under the forearm and along the reclining body, while wet sand and broken surf carry broad orange reflections and the bracelets and earrings catch small hard glints.\nfrom side, the camera is low at her body level and directly beside her reclining figure; a close full-body crop keeps her large in the frame, filling about two thirds of the frame height, with her reclining length running diagonally from the lower left toward the upper right and placed slightly right of center; her shoulders and hips read in profile while her head turns toward the viewer, and the horizon crosses the upper third behind her.\ndetailed background",
+      "pair_sha256": "3a37fe1b28d5a84aba311f7d775d782de12c10dc03b44e6906d3875c2bb0bdf1",
+      "aesthetic_score": 2.346,
+      "selected": false
+    },
+    {
+      "id": "C05",
+      "character": "春丽",
+      "theme": "运动",
+      "image": "samples/c05_chun_li_seed2026110905.jpg",
+      "source_kind": "custom_menu_live_2026-11-09",
+      "original_size": [
+        1024,
+        1536
+      ],
+      "text_encoder": "qwen_3_06b_base.safetensors",
+      "text_encoder_type": "lumina2",
+      "vae": "Anime_2.9B_vae(qwen_vae1).safetensors",
+      "model": "Anima-2.9B-preview-v1_int8_convrot.safetensors",
+      "model_sampling_shift": 3.0,
+      "workflow": "api",
+      "sampler_node": "KSampler",
+      "parameters": {
+        "seed": 2026110905,
+        "steps": 50,
+        "cfg": 3.7,
+        "sampler_name": "euler",
+        "scheduler": "sgm_uniform",
+        "denoise": 1.0
+      },
+      "negative": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, emblem, logo, chest print, text, watermark, signature, highleg, swimsuit, qipao, dress, loose long hair, unbound hair, wet hair, wet clothes, rain, street, road, crosswalk, extra limbs, deformed hands, bunny girl, bunny suit, playboy bunny, bunny ears, leotard, cigarette, smoking, cigar, holding cigarette, simple background",
+      "positive": "year 2025, masterpiece, best quality, score_7, safe, 1girl, solo, chun-li, street fighter, @uriah-oyu, (@mokoiscat:0.65)\nbrown or black hair, hair almost always done up in a double bun, brown eyes, spiked bracelets, white bun covers, usually wears earrings\nblue open jacket, white sports bra, blue shorts, white sneakers. This sportswear set uses a blue open jacket with short sleeves and small spike-shaped tabs along each cuff in matte stretch fabric, blue shorts in matching stretch fabric, a plain white stretch-knit sports bra, and plain white sneakers.\nsmile, closed mouth; quiet contentment as she rests on the sand.\nlying on her side on the beach sand, body turned sideways with her shoulders and hips in profile, her torso propped on one elbow and that forearm pressed into the sand for support, her free hand resting on her hip, her legs extended along the sand with one ankle crossed over the other, and her head turned toward the viewer with a natural neck turn.\nhorizon, sky, beach, ocean, sand, sunset, evening. The horizon crosses the upper third of the frame; the open sea shifts from dark blue-green near the breaking surf to warm reflected orange at the horizon, with irregular white surf lines and a shoreline that recedes behind her. Rippled dry sand and shallow tidal channels fill the near foreground, overlapping toward wet sand and a few dark rocks where the waves break, while the far water and clear evening sky hold their shapes with reduced contrast.\nsunset, orange sky, evening, low sidelighting, long shadows. Low sun from the ocean side rakes across broad skin shading on the side of her turned face facing the light, the matte fabric folds of her jacket sleeve and shorts side panel, setting a clear warm lit plane against a deeper shadow on the near side of her face, waist and sand beneath her propped forearm. Weaker sky and sand bounce keep the shadow readable; contact shadows gather under the forearm and along the reclining body, while wet sand and broken surf carry broad orange reflections and the bracelets and earrings catch small hard glints.\nfrom side, the camera is low at her body level and directly beside her reclining figure; a close full-body crop keeps her large in the frame, filling about two thirds of the frame height, with her reclining length running diagonally from the lower left toward the upper right and placed slightly right of center; her shoulders and hips read in profile while her head turns toward the viewer, and the horizon crosses the upper third behind her.\ndetailed background",
+      "pair_sha256": "3a37fe1b28d5a84aba311f7d775d782de12c10dc03b44e6906d3875c2bb0bdf1",
+      "aesthetic_score": 2.026,
+      "selected": false
+    }
+  ]
+}
