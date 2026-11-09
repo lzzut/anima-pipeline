@@ -1,39 +1,34 @@
-# credentials / local settings
+# Local credentials and identity
 .env
+.env.*
+!.env.example
+*.pem
 *.key
+*cookie*
+*session*.json
 user_settings.json
-
-# runtime caches
+# Generated images, evidence and machine-specific runtime state
+output/
+logs/
+backups/
+*.log
+*.pid
+*.tmp
 *_cache.json
 character_pool.json
 gate_rejected.json
-character_gate_cache.json
-character_model_blacklist.json
 body_verdicts.json
-identity_verdicts.json
-generation_index.json
-*_verdicts.json
-comfyui.pid
-
-# generated output
-output/
-logs/
-*.log
-
-# model weights / LoRA
+# Dependencies, model weights and editor files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 models/
-loras/
 *.safetensors
 *.ckpt
 *.pt
 *.pth
-
-# python
-__pycache__/
-*.pyc
-.venv/
-venv/
-
-# OS
+.idea/
+.vscode/
 .DS_Store
 Thumbs.db

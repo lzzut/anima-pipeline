@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ensure_comfyui.py — ComfyUI 自动拉起 / 健康检查
 
@@ -21,17 +20,20 @@ ensure_comfyui.py — ComfyUI 自动拉起 / 健康检查
     from ensure_comfyui import ensure_comfyui
     ensure_comfyui()        # 失败会抛 RuntimeError
 """
+
 import argparse
 import os
 import subprocess
 import sys
 import time
-
 import httpx
-
 from config import (
-    COMFY_URL, COMFY_DIR, COMFY_PYTHON, COMFY_START_ARGS,
-    COMFY_BOOT_TIMEOUT, COMFY_AUTOSTART,
+    COMFY_URL,
+    COMFY_DIR,
+    COMFY_PYTHON,
+    COMFY_START_ARGS,
+    COMFY_BOOT_TIMEOUT,
+    COMFY_AUTOSTART,
 )
 
 PID_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comfyui.pid")
@@ -67,8 +69,9 @@ def _pid_alive(pid):
     if not pid:
         return False
     try:
-        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                             capture_output=True, text=True, timeout=15)
+        out = subprocess.run(
+            ["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True, timeout=15
+        )
         return "python" in out.stdout.lower()
     except Exception:
         return False
@@ -80,32 +83,28 @@ def start_comfyui(wait=True, verbose=True):
         raise RuntimeError(f"找不到 ComfyUI 的 python：{COMFY_PYTHON}")
     if not os.path.isdir(COMFY_DIR):
         raise RuntimeError(f"找不到 ComfyUI 目录：{COMFY_DIR}")
-
     creationflags = 0
     if os.name == "nt":
-        creationflags = (subprocess.DETACHED_PROCESS
-                         | subprocess.CREATE_NEW_PROCESS_GROUP)
-
+        creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
     if verbose:
         print(f"[ComfyUI] 启动中：{COMFY_PYTHON} {' '.join(COMFY_START_ARGS)}")
         print(f"[ComfyUI] 日志：{LOG_FILE}")
-
     with open(LOG_FILE, "wb") as out, open(ERR_LOG_FILE, "wb") as err:
         proc = subprocess.Popen(
             [COMFY_PYTHON] + COMFY_START_ARGS,
-            cwd=COMFY_DIR, stdout=out, stderr=err,
-            creationflags=creationflags, close_fds=True,
+            cwd=COMFY_DIR,
+            stdout=out,
+            stderr=err,
+            creationflags=creationflags,
+            close_fds=True,
         )
-
     try:
         with open(PID_FILE, "w", encoding="ascii") as f:
             f.write(str(proc.pid))
     except Exception:
         pass
-
     if not wait:
         return proc.pid
-
     deadline = time.time() + COMFY_BOOT_TIMEOUT
     while time.time() < deadline:
         if is_ready():
@@ -119,12 +118,11 @@ def start_comfyui(wait=True, verbose=True):
                     tail = f.read()[-800:]
             except Exception:
                 pass
-            raise RuntimeError(
-                f"ComfyUI 启动后立即退出（exit={proc.returncode}）\n{tail}")
+            raise RuntimeError(f"ComfyUI 启动后立即退出（exit={proc.returncode}）\n{tail}")
         time.sleep(3)
-
-    raise RuntimeError(f"等待 ComfyUI 就绪超时（{COMFY_BOOT_TIMEOUT}s），"
-                       f"请看日志 {LOG_FILE} / {ERR_LOG_FILE}")
+    raise RuntimeError(
+        f"等待 ComfyUI 就绪超时（{COMFY_BOOT_TIMEOUT}s），请看日志 {LOG_FILE} / {ERR_LOG_FILE}"
+    )
 
 
 def stop_comfyui(verbose=True):
@@ -133,8 +131,7 @@ def stop_comfyui(verbose=True):
         if verbose:
             print("[ComfyUI] 没有记录到正在运行的进程")
         return False
-    subprocess.run(["taskkill", "/PID", str(pid), "/F"],
-                   capture_output=True, text=True, timeout=20)
+    subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True, text=True, timeout=20)
     if verbose:
         print(f"[ComfyUI] 已停止 PID={pid}")
     return True
@@ -147,22 +144,18 @@ def ensure_comfyui(auto_start=None, verbose=True):
     """
     if auto_start is None:
         auto_start = COMFY_AUTOSTART
-
     if is_ready():
         if verbose:
             stats = system_stats()
             free = None
             try:
-                free = round(stats["devices"][0]["vram_free"] / 2 ** 30, 2)
+                free = round(stats["devices"][0]["vram_free"] / 2**30, 2)
             except Exception:
                 pass
-            print(f"[ComfyUI] 已在运行：{COMFY_URL}"
-                  + (f"（显存空闲 {free} GB）" if free else ""))
+            print(f"[ComfyUI] 已在运行：{COMFY_URL}" + (f"（显存空闲 {free} GB）" if free else ""))
         return True
-
     if not auto_start:
         raise RuntimeError(f"ComfyUI 未运行且未开启自动拉起：{COMFY_URL}")
-
     if verbose:
         print("[ComfyUI] 未检测到服务，自动拉起……")
     start_comfyui(wait=True, verbose=verbose)
@@ -175,25 +168,23 @@ if __name__ == "__main__":
     ap.add_argument("--stop", action="store_true", help="停止 ComfyUI")
     ap.add_argument("--start", action="store_true", help="强制拉起（已在运行则跳过）")
     args = ap.parse_args()
-
     if args.stop:
         stop_comfyui()
         sys.exit(0)
-
     if args.status:
         if is_ready():
             stats = system_stats() or {}
             dev = (stats.get("devices") or [{}])[0]
             print(f"运行中：{COMFY_URL}")
-            print(f"  显存：空闲 {dev.get('vram_free', 0) / 2**30:.2f} GB "
-                  f"/ 共 {dev.get('vram_total', 0) / 2**30:.2f} GB")
+            print(
+                f"  显存：空闲 {dev.get('vram_free', 0) / 2 ** 30:.2f} GB / 共 {dev.get('vram_total', 0) / 2 ** 30:.2f} GB"
+            )
             print(f"  ComfyUI 版本：{stats.get('system', {}).get('comfyui_version')}")
             pid = _read_pid()
             print(f"  记录的 PID：{pid}（存活={_pid_alive(pid)}）")
         else:
             print(f"未运行：{COMFY_URL}")
         sys.exit(0)
-
     try:
         ensure_comfyui(auto_start=True)
     except Exception as e:

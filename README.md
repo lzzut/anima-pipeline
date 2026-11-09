@@ -1,509 +1,207 @@
-# anima-pipeline
+# Anima Pipeline：用 LLM 为不同人物、不同场景生成可执行的绘画提示词
 
-一个面向 **Anima-2.9B** 的二次元角色出图流水线：自动选角、核验角色是否在模型知识范围内、生成结构化提示词、调用本地 ComfyUI 出图，并按候选质量选优。
+这是一个本地二次元出图工具：先用 **DeepSeek V4 Flash 1017** 联网研究人物，再把人物事实、换装设计、动作、镜头、背景和光照整理成适合 **Anima-2.9B-preview-v1** 的提示词，交给本地 ComfyUI 生成图片。可手动选择人物和参数，也可让程序自动选角、选主题，并对同一提示词生成的候选进行本地美学排序。
 
-公开版只保留 **Anima-2.9B 的 `api` / `anima_flow` 两条出图线路**，不包含人物 LoRA、旧模型线路、模型权重、生成图库或任何社交平台上传功能。
+项目的重点是让同一套流程用于**多个作品的人物和多种主题场景**，尽量减少事实混入、换装污染、动作与镜头争夺构图、光照矛盾等问题。默认画面是 `1girl, solo`；这里的“多人物”指人物池的覆盖范围，不能理解为已经解决多人同框、人物间属性绑定或复杂互动。
 
-> 这是一个个人向研究项目，不是开箱即用的商业产品。模型权重、ComfyUI 和第三方 API 需要自行准备。
+公开版只提供本地出图。自动发布、社交平台登录、排期、启动任务、跨次人物轮换池、长期黑名单、人物资料磁盘缓存和历史迁移处理均不包含在本仓库中。本次任务的提示词、证据、seed、候选、评分和实际提交工作流保存在当前输出目录中，方便复现和微调；不作为下一次运行的历史输入。
 
----
+## 模型适配范围
 
-## 快速开始
+| 用途 | 当前适配基线 | 实际配置与边界 |
+|---|---|---|
+| 提示词生成与语义核对 | **DeepSeek V4 Flash 1017** | 默认 API 请求名 `deepseek-flash`，配置项 `DEEPSEEK_MODEL`。该名称是服务方别名，代码不能保证服务方永远将它固定到 1017；部署时请自行确认服务实际版本。 |
+| 绘图 | **Anima-2.9B-preview-v1** | `config.py` 中配置原生 bf16 和 int8 两种权重。文件名里的 `Anima` 是本仓库采用的模型名称；并非 Animagine XL。 |
+| 候选美学排序 | **`kawaimasa/kawai-aesthetic-scorer-convnextv2`** | Transformers 图像分类器，本地加载；不向该模型服务上传图片。 |
 
-三条最常用的命令：
+**使用本项目时请注意：提示词设计、混合标签写法、事实契约、修正指令、thinking 工具回填及 token 限额，均围绕 DeepSeek V4 Flash 1017 + Anima-2.9B 这两个模型优化。换用其他对话模型或绘图模型，可能需要重新设计 API 适配、提示词编译、预算和采样参数，不应视为直接兼容。** 美学模型也针对其训练偏好排序，不保证符合每个人的审美。
 
-```powershell
-python smoke_test.py                 # 只验证本地出图，不需要 DeepSeek key
-python pipeline_character.py         # 完整自动链路，需要 DeepSeek key
-python custom_entry.py               # 手工指定工作流/角色/采样器/画师，需要 DeepSeek key + ComfyUI
-```
+Anima 适合将熟悉的角色／作品标签与较详细的英文自然语言描述混合使用。标签提供人物、主题、风格锚点，关系句描述服装结构、身体接触、空间和光照。本项目不设“通用最佳字数”，也不把更长文本、更多质量词或更深阴影视为画质提升。复杂器械接触、左右手精确分工、罕见视角、脸部还原和细小饰品仍受绘图模型能力及 seed 影响。
 
-手工入口还有两种不消耗 API 的辅助用法：
+当前人物选材上限为 **2026-07（含 7 月）**，按角色本人的首次公开登场日期处理；它不是“这个月以前所有人物模型都认识”的保证，也不禁止为已符合条件的人物查询较新的外观细节。来源版本、归属和明确排除的设计仍须一致。相关逻辑见 [`anima_source_policy.py`](anima_source_policy.py) 和 [`character_gate.py`](character_gate.py)。
 
-```powershell
-python custom_entry.py --list        # 列出已注册工作流、采样器、画师组合
-python custom_entry.py --dry-run     # 只走菜单，不调用 API、不出图
-```
+## 两条出图工作流
 
-自定义 workflow **不能只把 JSON 放进目录**；必须先按 [docs/WORKFLOW_EXTENSION.md](docs/WORKFLOW_EXTENSION.md) 在 `config.py` 注册，才会出现在菜单里。
+两条线路使用同一组 Anima 权重和同一条提示词生成链，区别在本地 ComfyUI 图与采样方法：
 
-手工入口的完整交互说明（输入顺序、字段含义、示例、输出位置）：
+| 线路 | 文件与节点 | 默认采样设置 |
+|---|---|---|
+| `api` | [`workflow_api.json`](workflow_api.json)，`KSampler` + `ModelSamplingAuraFlow` | 50 步，4 组组合可选或随机，见下表。 |
+| `anima_flow` | [`workflow_anima_flow.json`](workflow_anima_flow.json)，`AnimaFlowCorrectiveSampler` | 50 步，`cfg_mode=const`、`flow_solver=flow_euler`、`flow_schedule=flow_diffusers_linear_shift`、`flow_shift=3.0`。 |
 
-**[docs/CUSTOM_ENTRY.md](docs/CUSTOM_ENTRY.md)**
+`api` 的 4 组采样器组合为：
 
----
+| 采样器 | 调度器 | 步数 |
+|---|---|---:|
+| `euler` | `sgm_uniform` | 50 |
+| `res_multistep` | `linear_quadratic` | 50 |
+| `er_sde` | `beta57` | 50 |
+| `uni_pc` | `ddim_uniform` | 50 |
 
-## 样图
+CFG 会被本次画风策略统一设置：启用画风标签时为 **3.7**，不启用时从 **3.5～5.0** 随机取值，两条工作流都如此。不要仅看工作流模板里原先存下的 CFG／Flow 参数；运行时会用 `config.py` 的设置覆盖，并另存实际提交的图。
 
-### 采样器组合对比
+默认输出尺寸为 **1024 × 1536**。原生 bf16 与 int8 可以手动选择或随机选择，速度、显存和结果差异需在自己的硬件上确认。节点、采样器名称及调度器必须在你的 ComfyUI `/object_info` 中可用；特别是 Flow 自定义节点和 `beta57`，不能只凭 JSON 文件存在就认定安装完成。
 
-![Anima-2.9B sampler comparison](docs/samples/sampler_comparison.png)
+## 安装和本地配置
 
-同一角色、同一模型下比较不同 KSampler 组合。实际运行时采样器组合由 `config.KSAMPLER_COMBOS` 随机抽取。
-
-### 画师组合 A / B 匿名对比
-
-![Artist combination A/B](docs/samples/artist_groups_ab.png)
-
-两套画师组合、同一组 5 个角色、同一模型与采样设置。为避免把个人审美偏好误读为对具体画师的评价，公开样图不标注画师姓名，也不提供 A/B 与姓名的对应关系。
-
-样图来自本地实验，仅用于展示风格差异；不保证换机器、换 seed 后复现同一结果。
-
----
-
-## 功能范围
-
-- **选角**：DeepSeek 通过本地 `web_search` 函数工具联网选角，输出角色、作品、主题、视觉特征。
-- **能力门控**：用 Danbooru 标签投稿数、作品/角色出道年份、模型知识截止日期，判断模型是否可能认识该角色。
-- **提示词**：把角色、作品、服装、姿势、表情、场景、光照整理成 Anima 训练格式的标签串。
-- **画师组合**：按作品/通用池注入画师串，支持权重截断。
-- **出图**：调用本地 ComfyUI，`api` 与 `anima_flow` 两条线路随机选择。
-- **候选选优**：一次生成多张，按本地美学评分选优；可选身份一致性复核。
-- **安全门控**：暴露类主题下，对角色体型做 VLM 复核（`body_judge.py`）。
-- **手工入口**：`custom_entry.py` 可选择已注册工作流、角色、采样器和画师组合。
-
-不包含：
-
-- 人物 LoRA 的搜索、下载、挂载或质量 A/B
-- 社交平台的内容分发或定时推送
-- 模型权重、LoRA 权重、生成图库
-- 任何登录凭据、会话材料或个人身份信息
-
----
-
-## 自定义工作流
-
-公开版支持把符合节点契约的 **ComfyUI API 格式 KSampler 工作流**加入 `WORKFLOW_POOL`，但不是“丢进目录就自动扫描”，还需要在 `config.py` 注册工作流设置和模型档案。
-
-**提示词警告**：Anima-2.9B 的 `year 2025 / score_7 / 画师串 / 长 Danbooru 标签`结构，是按 Anima 和对应文本编码器调过的。自添加模型的提示词语法、文本编码器可读长度、VAE 和推荐步数都可能不同；长提示词可能被截断，原来的提示词结构也不一定适用。不要把“能出图”当成“提示词已适配”。
-
-完整节点契约、注册步骤和限制见：
-
-**[docs/WORKFLOW_EXTENSION.md](docs/WORKFLOW_EXTENSION.md)**
-
----
-
-## 目录结构
-
-```text
-anima-pipeline/
-├─ pipeline_character.py     # 主链：选角 → 门控 → 提示词 → 出图 → 选优
-├─ custom_entry.py           # 手工选择工作流/角色/采样器/画师组合
-├─ comfy_runner.py           # ComfyUI 构图、采样、候选评分
-├─ character_gate.py         # 角色 × 模型能力门控
-├─ body_judge.py             # 暴露主题下的体型 VLM 复核
-├─ booru_client.py           # Danbooru/Safebooru 标签与参考图查询
-├─ web_search.py             # 选角阶段的本地联网搜索工具
-├─ prompt_style.py           # 提示词风格补充
-├─ pool_manager.py           # 角色池与 JSON 解析
-├─ ensure_comfyui.py         # ComfyUI 健康检查/可选自动拉起
-├─ smoke_test.py             # 不依赖 DeepSeek 的最小出图验证
-├─ artist_matrix_test.py     # 仅保留 _slug / _replace_artist 两个工具函数
-├─ workflow_api.json         # Anima KSampler 线路
-├─ workflow_anima_flow.json  # AnimaFlow 线路
-├─ workflow_refine.json      # 通用 img2img 精修图
-├─ data/
-│  ├─ artist_combos.json
-│  ├─ character_debut_years.json
-│  └─ danbooru_tags.csv
-├─ docs/
-│  ├─ CUSTOM_ENTRY.md      # 手工入口完整说明
-│  ├─ WORKFLOW_EXTENSION.md # 自定义工作流契约与提示词警告
-│  └─ samples/
-└─ requirements.txt
-```
-
----
-
-## 环境要求
-
-- Python 3.10+
-- 本地 ComfyUI（建议较新版本）
-- 以下模型文件（文件名必须与 workflow/JSON 中一致，或在 `config.py` 中改常量）：
-
-```text
-ComfyUI/models/unet/Anima-2.9B-preview-v1.safetensors
-ComfyUI/models/unet/Anima-2.9B-preview-v1_int8_convrot.safetensors   # 可选，int8 快档
-ComfyUI/models/clip/qwen_3_06b_base.safetensors
-ComfyUI/models/vae/Anime_2.9B_vae(qwen_vae1).safetensors
-```
-
-- `api` 线路只依赖 ComfyUI 原生节点。
-- `anima_flow` 线路依赖提供 `AnimaFlowCorrectiveSampler` 节点的 ComfyUI 扩展；未安装时请只使用 `api` 线路，或把 `WORKFLOW_POOL` 改为 `["api"]`。
-- 本地美学评分是可选项：`comfy_runner.py` 会尝试加载 `kawaimasa/kawai-aesthetic-scorer-convnextv2`。未安装 `transformers` / 本地没有缓存时，评分失败会退化为 0 分，不影响出图。
-- 公开版主要在 Windows 上验证。`ensure_comfyui.py` 的自动拉起/停止使用 Windows 进程命令；Linux/macOS 建议手动启动 ComfyUI，只使用健康检查。
-
----
-
-## 安装
-
-如果已经拿到项目目录：
+建议 Python 3.10 及以上，先安装并配置能够执行上述 Anima 工作流的 ComfyUI。模型权重、自定义节点、CUDA 和显存需求属于绘图环境，本仓库不捆绑权重或替你安装 ComfyUI。
 
 ```powershell
-cd anima-pipeline
 python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-如果从远端克隆，把 `<repo-url>` 换成实际地址：
+在 ComfyUI 中放好这些文件，实际名称不同则同步修改配置／工作流：
+
+| 文件 | 常规目录 |
+|---|---|
+| `Anima-2.9B-preview-v1.safetensors` | `ComfyUI/models/diffusion_models/` |
+| `Anima-2.9B-preview-v1_int8_convrot.safetensors` | `ComfyUI/models/diffusion_models/` |
+| `qwen_3_06b_base.safetensors` | `ComfyUI/models/text_encoders/` |
+| `Anime_2.9B_vae(qwen_vae1).safetensors` | `ComfyUI/models/vae/` |
+
+随机权重模式需要两种权重都可用；只有一种时，在自选入口中明确选择它，或调整 `ANIMA_MODEL_CHOICES`。`api` 模板的文本编码器类型是 `lumina2`，`anima_flow` 模板是 `stable_diffusion`，请按所用 Anima／ComfyUI 节点实现确认；不要未经验证套用到其他模型。
+
+当前 PowerShell 会话配置示例：
 
 ```powershell
-git clone <repo-url>
-cd anima-pipeline
+$env:DEEPSEEK_API_KEY = '填写你自己的密钥'
+$env:DEEPSEEK_BASE_URL = 'https://api.deepseek.com'
+$env:DEEPSEEK_MODEL = 'deepseek-flash'
+$env:COMFY_URL = 'http://127.0.0.1:8188'
 ```
 
-可选（本地美学评分）：
+也可以将 `.env.example` 复制为 `.env`，只填写 `DEEPSEEK_API_KEY`。**内置 `.env` 读取器只加载这个密钥；其他选项使用环境变量或修改 `config.py`。** `.env` 已在 `.gitignore` 排除，不要把真实值写进源码或截图。
+
+默认由你启动 ComfyUI，程序只检查服务是否就绪。Windows 上若需要程序启动本地 ComfyUI，额外设置 `COMFY_DIR`、`COMFY_PYTHON`、`COMFY_AUTOSTART=1`；路径使用自己的安装位置。入口菜单的“9”也能修改本进程使用的路径。该功能只管理本地绘图服务，不创建操作系统计划任务；配置不写入长期用户设置。
+
+### 启用美学排序
+
+基础依赖能运行菜单和出图调用；有效的美学排序还需要 PyTorch、Transformers 和评分模型。先按自己的 CPU／CUDA 环境安装合适的 PyTorch，再安装：
 
 ```powershell
-pip install transformers torch
+python -m pip install -r requirements-scoring.txt
 ```
 
-注意：`comfy_runner.py` 在导入时设置了 `HF_HUB_OFFLINE=1` / `TRANSFORMERS_OFFLINE=1`，所以评分模型需要在离线前已经缓存到本机。没有缓存时评分会失败并退化为 0 分，不影响出图。
-
----
-
-## 配置
-
-所有敏感配置只从环境变量读取，不写入仓库。
+评分模块运行时设置 Hugging Face／Transformers 离线模式，需在**尚未导入本项目模块的新进程**中提前下载并验证模型：
 
 ```powershell
-$env:DEEPSEEK_API_KEY = "你的 DeepSeek API key"
-$env:COMFY_URL = "http://127.0.0.1:8188"          # 可选
-$env:COMFY_DIR = "C:\ComfyUI"                     # 可选：用于自动拉起
-$env:COMFY_PYTHON = "C:\ComfyUI\venv\Scripts\python.exe"
+python -c "from transformers import pipeline; pipeline('image-classification', model='kawaimasa/kawai-aesthetic-scorer-convnextv2')"
 ```
 
-`config.py` 中 `COMFY_DIR` / `COMFY_PYTHON` 默认为空；只填环境变量即可。未配置这两个变量时不会尝试自动拉起 ComfyUI，需先手动启动。
+若系统已设置 `HF_HUB_OFFLINE` 或 `TRANSFORMERS_OFFLINE`，先在下载用终端解除它们。评分器加载失败时会显示失败并返回 0 分；全体同分时随机选取，所以“程序有选中图”并不代表评分器正常。先确认实际评分可用，再使用五选一。
 
-检查 ComfyUI：
+## 如何出图
 
-```powershell
-python ensure_comfyui.py --status
-```
-
----
-
-## 启动与使用方案
-
-公开版有三种用法，按“先验证、再完整运行”的顺序使用。
-
-### 1. 最小验证：只测本地出图（无需 DeepSeek）
-
-```powershell
-python smoke_test.py
-```
-
-它会用 `workflow_api.json` 生成一张 8 步测试图，验证 ComfyUI、UNet、CLIP、VAE 和 workflow 是否正常。成功输出类似：
-
-```text
-[smoke] OK: .../output/smoke/smoke.png (1024x1536, ... bytes)
-```
-
-如果这一步失败，先不要运行主链，按报错检查 ComfyUI 是否启动、模型文件名是否与 `config.py` 一致。
-
-### 2. 完整自动链路（需要 DeepSeek API key）
-
-```powershell
-python pipeline_character.py
-```
-
-流程：DeepSeek 选角 → 门控 → 提示词 → ComfyUI 出图 → 选优。
-
-### 3. 手工指定工作流/角色/采样器/画师组合
-
-> 完整逐步说明已单独整理：[docs/CUSTOM_ENTRY.md](docs/CUSTOM_ENTRY.md)
-
-手工入口**不经过自动选角和角色门控**：你先选已注册工作流，再给角色标签、采样器和画师组合，适合已经知道要画谁、只想换工作流/采样器/画师的情况。模型不认识该角色时，仍可能出现通用脸。
-
-建议按“看选项 → 演练 → 实际出图”三步使用。
-
-#### 3.1 先看有哪些选项（不需要 DeepSeek key）
+**自选入口：**
 
 ```powershell
 python custom_entry.py --list
-```
-
-列出所有已注册工作流；默认是 Anima 两条线、4 组采样器和 27 组画师组合，自定义工作流注册后也会出现。只打印后退出，不调用 DeepSeek，不启动 ComfyUI，不出图。
-
-#### 3.2 演练一遍输入（不需要 DeepSeek key）
-
-```powershell
 python custom_entry.py --dry-run
-```
-
-会完整走一遍菜单，最后打印本次模型、角色、主题、景别和采样器，但**不调用 DeepSeek、不启动 ComfyUI、不写图片**。
-
-#### 3.3 实际出图（需要 DeepSeek key + ComfyUI）
-
-```powershell
 python custom_entry.py
 ```
 
-交互顺序固定如下：
+菜单顺序是：工作流 → 权重 → KSampler 组合（仅 `api`）→ 画风组合 → 人物和作品中英文标签、外观版本 → 18 主题之一 → 背景来源 → 1 张或五选一 → 起始 seed。支持不加画风标签、指定组合或随机；起始 seed 留空则随机，五选一指定 seed 时连续 `+1`。当前 seed 范围是 `0..2147483647`，连续候选也必须在范围内。完整用法见 [`docs/CUSTOM_ENTRY.md`](docs/CUSTOM_ENTRY.md)。
+
+**自动本地出图入口：**
+
+```powershell
+python pipeline_character.py --dry-run
+python pipeline_character.py --workflow api --count 1 --theme 和服
+python pipeline_character.py --workflow anima_flow --count 5 --route deepseek
+```
+
+每次命令只运行一次本地任务。自动入口先选人物／主题、规范标签并通过人物范围门控，再进入与自选入口相同的“人物预检 → 设计 → 写作 → 审查 → 出图 → 选图”流程。它可以在人物证据确实不可用且达到修正上限时更换人物；自选入口保持你的选人，失败则明确结束。两者都不会向社交平台发送内容。
+
+**“两条工作流”与“背景来源”不同。** 背景来源 `mixed` 默认约 1/3 从主题场景清单选一个、2/3 由 DeepSeek 设计地点；`fixed` 固定使用场景清单，但并非锁定同一张背景图；`deepseek` 由模型设计。室内外、时段、天气、季节和主题约束会一并协调。“背景”主题仍保留角色，表示偏向保留原装、设计环境，不是纯风景模式。
+
+## 提示词生成链：先拆职责，再协调画面
+
+```mermaid
+flowchart TD
+  A[手动输入 或 自动选角与门控] --> B[真实联网研究与来源正文]
+  B --> C[人物事实卡与逐条语义核对]
+  C --> D[服装设计]
+  D --> E[场景与动作设计]
+  E --> F[构图协调：动作和镜头各司其职]
+  F --> G[结构化写作：可见身份与画面状态]
+  G --> H[环境与光照设计]
+  H --> I[动作 表情 镜头最终文字协调]
+  I --> J[本地契约检查及条件式语义审查]
+  J --> K{是否通过}
+  K -->|需修正且未达上限| L[仅修问题字段及必要依赖并复核]
+  L --> J
+  K -->|通过| M[编译并冻结实际正负提示词]
+  M --> N[本地 ComfyUI 单张 或 同提示词多 seed]
+  N --> O[本地美学排序与图片画廊]
+```
+
+1. **研究和写作分开。** `prompt_refinement.py` 搜索人物资料并读取正文，`anima_prompt_pipeline.Session.fact_card` 将可追溯引文变成结构化事实。网页只作不可信资料，不接收其中的操作指令；未查实的细节不伪装成官方设定。
+2. **先核对事实，再设计。** 发型、瞳色、标志饰品、体型和原装分别存放，每条事实带来源、逐字引文、版本和可见部位。审查需判断引文是否支持该人物的该属性，不能只满足“这句话出现在网页里”。细分术语和数量／附着位置也需保真。
+3. **人物身份与换装分离。** 换装写作输入剔除原装披肩、手套等服装事实，保留有依据的身份特征；眼睛颜色必须写成 `gray-purple eyes` 等完整属性短语。衣服的配色、剪裁、材料、饰品相互配合，并结合人物资料，而非所有人物套一套服装。
+4. **让画面设计拥有明确职责。** 服装层确定设计，场景层确定一个可执行动作，构图层统一视角、裁切、人物位置和画面内背景。`pose` 说明身体／接触关系，`composition` 说明镜头；隐藏的脚、衣服背面等不能继续在其他字段里被要求展示。
+5. **背景和光照按同一空间设计。** 环境层只改场景、光照及获准的可见性依赖，保留人物、服装和动作意图。以可辨认的地点、前中远景、材质、主光方向和反射关系提高完整性；室外泳装需读得出沙滩／海浪／海域，和服禁止摊位背景，运动优先避免复杂器械操作。
+6. **最后协调及有限修正。** 最终视觉协调只处理动作、表情、镜头的文字一致性，不把服装或环境推倒重写。审查发现问题后，只能修改被指出的字段及直接相关依赖，并再次验证；不靠不断生成新稿来掩盖失败。
+7. **编译和渲染有边界。** 编译器拥有身份事实和体型字段，写作层拥有创意画面。最终提示词和可见性契约经核对后冻结；渲染端只按规则注入本次画风组合、传入 seed／采样设置，并保存实际提交值，避免后处理偷偷改变已批准正文。
+
+详细调用顺序、输入／输出、修正边界、预算以及微调地图见 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)。
+
+## 修正上限、费用与失败
+
+人物事实修正最多 **2 轮**，每轮“修改 → 再核对”。自动入口因证据不足或事实修正耗尽，最多更换 **2 次人物**，即最多处理 3 个人物；选角门控最多 9 次候选尝试。网络、密钥或无效审查契约问题不当成人物问题来盲目换人。自选入口不偷偷更换人物。
+
+默认开启分阶段设计时，画面文本修正上限是 **3 轮**；仍无法通过时停止，不提交 ComfyUI。常用设计／稳定写作／画面修正输出限额为 **32,000 token**，事实及语义审查为 **48,000 token**。仅当 API 明确报告输出预算耗尽，允许升到 **64,000 token** 恢复：事实预检范围一次，后续全部提示词阶段共享一次，不逐环节重置。上限包含模型推理与输出预算，不代表每次实际消耗这些 token。
+
+各阶段调用还受会话请求数上限约束，详见运行数据中的 `request_limit`、`role_budgets`、`requests` 和 `budget_recovery_scope`。固定价格不写死；实际开销取决于模型版本、来源可用性、工具费和修订次数。`pipeline_character.usage_summary()`、`web_search.web_usage_summary()` 可用于本进程核算，不能把输出上限直接当账单。
+
+## 美学评分和五选一
+
+五选一模式先生成一份通过检查的主提示词，再保持其正文、权重、采样器和画风组合一致，换 5 个 seed；不是调用 5 次完整 LLM 链。现有写作契约可能同时包含姿势备选字段，默认 `ANIMA_SAME_PROMPT_SEEDS=True` 时仍只渲染主稿。
+
+评分器 `kawaimasa/kawai-aesthetic-scorer-convnextv2` 返回等级概率，本项目按 **SS=5、S=4、A=3、B=2、C=1** 计算加权期望分。取最高分，有效分数相同时随机选一张；所有候选保留。评分比较针对当前批次，不是画质百分制，也没有通过分数保证角色像、四肢正确或背景合理。
+
+默认没有启用额外的眼部 VLM 检查；顶部裁切像素惩罚函数目前返回 0。`identity_judge` 等兼容函数的存在不代表默认执行了人物身份审图。文字一致性与美学排序都需要配合查看实际图片。
+
+## 输出与微调入口
 
 ```text
-选择工作流编号：1
-  1 = Anima-2.9B-preview-v1 [api]
-  2 = Anima-2.9B-preview-v1 [anima_flow]
-  N = config.py 里注册的自定义工作流（如果有）
-  9 = 修改 ComfyUI 路径（保存到 user_settings.json）
-  q = 退出
-
-选择采样器组合编号（默认 1）：1
-  api：4 组 Anima KSampler 组合
-  anima_flow：只有固定 Flow 采样器，自动使用
-  自定义：有 sampler_combos 才显示多组；只有一组时自动使用
-
-选择画师组合编号（0=不加画师，默认 0）：0
-  0 = 不注入画师串
-  1~27 = 对应组合
-
-人物中文名：初音未来
-作品中文名：Vocaloid
-人物英文标签（如 furina_(genshin_impact)）：hatsune_miku
-作品英文标签（如 genshin_impact）：vocaloid
-主题（默认 四季常装）：四季常装
-景别（默认 cowboy shot）：cowboy shot
-seed（默认 20261022）：20261024
+output/custom 或 output/automatic/
+  日期/本次任务/
+    查看图片.html
+    图片/
+      全部候选图/stable/   # 文件名含 seed
+      程序选中图/
+    数据/
+      提示词会话/          # 本任务来源、阶段输入输出、事实审查与修订
+      候选记录/            # 实际正负提示词与 seed
+      实际工作流/          # 提交到 ComfyUI 的图
+      *_aesthetic_selection_*.json  # 本地评分模型、候选分数与选中路径
+    last_entry.json
 ```
 
-英文标签建议直接使用 Danbooru 标签；带歧义的角色用 `角色_(作品)` 写法。`景别` 可填：
-
-- `cowboy shot`：七分身/膝上
-- `full body`：全身
-
-成功后输出一张图：
-
-```text
-output/_custom_entry/<YYYY-MM-DD>/<角色>_<主题>.png
-output/_custom_entry/<YYYY-MM-DD>/last_entry.json
-```
-
-全部输出位置：
-
-```text
-output/character/<YYYY-MM-DD>/     # 主链
-output/_custom_entry/<YYYY-MM-DD>/ # 手工入口
-output/smoke/smoke.png             # 最小验证
-```
-
----
-
-## 出图流程
-
-```text
-DeepSeek 选角（联网搜索）
-        ↓
-danbooru 标签 / 出道年份 / 模型截止日期门控
-        ↓
-暴露主题 → 体型 VLM 复核（body_judge）
-        ↓
-生成结构化提示词（角色、服装、姿势、表情、场景、光照）
-        ↓
-随机线路 api / anima_flow → 随机采样器组合 → 画师串 50% 注入
-        ↓
-ComfyUI 生成 N 张候选
-        ↓
-本地美学评分 + 可选身份复核
-        ↓
-输出最终选中图
-```
-
-门控失败会重选角色或换线路；不会为了凑数跳过门控。
-
-### 门控拒绝后的处理
-
-当 `accepts()` 打回一个角色时：
-
-1. 立即把该角色写入 `gate_rejected.json` 中**当前模型**的分组，记录：
-   - `model_key`：所属模型
-   - `status: "gate_rejected"`
-   - `gate_reason`：拒绝原因
-   - `scope`：`artist` / `no_artist`
-   - `workflow`：拒绝时使用的线路
-   - `first_rejected_at` / `rejected_at`：首次/最近拒绝时间
-   - `count`：累计被拒次数
-2. 只把**当前模型**的黑名单角色加入本次运行的 `excluded`。
-3. 下一轮 `ask_ai_character()` 会明确避开该角色，重新生成一个新人物。
-4. 如果模型仍返回已排除角色，不再重复调用门控，直接判定为重复并继续换人。
-5. 黑名单**不占** `character_pool.json` 的 35 条滚动名额，**不会自动释放**。
-
-`gate_rejected.json` 按模型隔离，结构示例：
-
-```json
-{
-  "Anima-2.9B": {
-    "raiden_shogun": {
-      "name": "雷电将军",
-      "name_en": "raiden_shogun",
-      "series": "原神",
-      "series_en": "genshin_impact",
-      "model_key": "Anima-2.9B",
-      "scope": "artist",
-      "workflow": "api",
-      "status": "gate_rejected",
-      "gate_reason": "角色级出道年晚于模型知识截止",
-      "first_rejected_at": "2026-10-24T04:50:00",
-      "rejected_at": "2026-10-24T04:50:00",
-      "count": 1
-    }
-  }
-}
-```
-
-`api` 和 `anima_flow` 的 `model_key` 都是 `Anima-2.9B`，因此同一模型的两条线路共享黑名单；换成另一个模型时，不会读取 `Anima-2.9B` 下的记录。
-
-`character_pool.json` 仍然只记录已通过门控、准备出图的角色；`gate_rejected.json` 独立保存门控拒绝记录。两个文件都在 `.gitignore` 中，不会提交。
-
-旧版扁平格式（`{name_en: record}`）会在启动时自动迁移：
-- 记录带 `workflow` → 按 `workflow` 的 `model_key` 分组
-- 没有 `workflow` → 归到当前启动模型
-
-旧版如果曾把 `gate_rejected` 写进 `character_pool.json`，也会自动迁移。
-
-如需重新允许某个被拒角色，手动从对应模型分组中删除条目，或删除整个 `gate_rejected.json`。
-
----
-
-## 提示词结构
-
-Anima 线路使用 Danbooru 风格的标签串，核心结构如下：
-
-```text
-year 2025, masterpiece, best quality, score_7, safe,
-1girl, solo, <character>, <series>,
-<artist combo>, <outfit>, <pose>, <expression>,
-<scene>, <lighting>, <detail tags>
-```
-
-说明：
-
-- `year 2025, masterpiece, best quality, score_7, safe` 是 `ANIMA_PREFIX`，固定作为质量/年份前缀。
-- 角色与作品标签放在主体位置；画师串插在作品标签之后，避免破坏角色名括号。
-- 负面提示词包含低质量、解剖错误、文字/水印等通用项，并按主题追加场景/构图负面。
-- 画师串不是每条都加：`artist_roll()` 以约 50% 概率触发；触发时 CFG 固定为 3.7，未触发时使用 3.5–5.0 的随机区间。
-- 边界一：角色出道年 ≤2021 时，`FORCE_ARTIST_OVERRIDE=True` 会**强制加画师、CFG 固定 3.7**，不参与 50% 随机；≥2022 或年份未知的角色才走 50% 分支。
-- 边界二：`custom_entry.py` 是手工入口，**不调用 `artist_roll()`**；画师由用户自己选，菜单填 `0` 表示不加画师，CFG 来自所选采样器组合。
-- `api` 线路会从 `KSAMPLER_COMBOS` 随机抽一套采样器/调度器/步数/CFG；`anima_flow` 使用固定的 flow 采样参数。
-
----
-
-## 画师组合依据
-
-画师组合不是随机拼人名，而是按以下思路整理：
-
-1. 以 Safebooru 上各作品约 500 张样本为统计对象，统计画面中出现的画师标签频次。
-2. 取高频、风格相容的组合，控制每串人数（通常 1 主 + 1 辅，最多 3 人）。
-3. 主画师保持权重 1.0；辅画师原始权重 0.7–0.8，运行时统一截断到 `SECONDARY_ARTIST_WEIGHT_MAX`（默认 0.65）。
-4. 作品分类找不到时使用通用池；公开版默认启用全局池。
-5. 组合列表在 `data/artist_combos.json`，运行时会优先读取该文件；文件缺失时使用 `config.py` 中的同值兜底。
-
-公开样图只标 **Artist combination A / B**，不标具体画师名。这样可以展示“组合会改变画面”，同时避免把样图质量归因于某位画师。
-
----
-
-## DeepSeek 参与环节
-
-本项目使用 DeepSeek 的对话/多模态能力，具体参与三个环节：
-
-### 1. 选角
-
-`pipeline_character.py` 调用 DeepSeek，要求它联网搜索并返回角色、作品、主题、视觉特征。联网不是模型内置能力，而是通过本地 `web_search.py` 的 function tool 执行，再把搜索结果回填给模型。
-
-发送内容：提示词、已用角色列表、模型知识截止日期、搜索关键词/结果摘要。
-
-### 2. 提示词生成
-
-DeepSeek 把角色设定整理成结构化 JSON（角色标签、作品标签、服装、姿势、表情、场景、光照、瞳色等），再由本地代码组装成 Danbooru 标签串。
-
-发送内容：角色名、作品名、主题、模型信息、格式要求。
-
-### 3. 体型复核（仅暴露类主题）
-
-`body_judge.py` 在主题属于泳装/暴露类时，从公开图站取最多 3 张该角色参考图，发给 DeepSeek 多模态接口判断是否属于儿童体型，并按多数票决定是否拒绝该角色。
-
-发送内容：角色英文标签、参考图（压缩后的 PNG）。不会发送本地路径、环境变量或密钥。
-
-### 数据与费用
-
-- API key 只从 `DEEPSEEK_API_KEY` 读取。
-- 调用会产生费用；`body_judge` 有本地 JSON 缓存，同一角色只判一次。
-- 如果不想使用外部 API，需要自行替换选角/提示词/体型复核模块。
-
----
-
-## 数据来源
-
-### `data/danbooru_tags.csv`
-
-- 内容：`tag, category, post_count, aliases`
-- 用途：本地判断角色标签、作品标签、投稿热度；联网失败时的兜底。
-- 来源：Danbooru 公开标签数据整理，快照时间约 2026-10。
-- 说明：`category=4` 为角色，`category=3` 为作品/版权；计数会随时间变化，文件是静态快照。
-- 公开版对明显与角色门控无关的少量通用标签做了过滤，不影响角色/作品门控逻辑。
-
-### `data/artist_combos.json`
-
-- 内容：按作品分组的画师组合 + 通用池。
-- 用途：运行时注入画师串。
-- 来源：Safebooru 作品样本的画师标签频次统计 + 人工筛选；不是对所有画师的客观排名。
-
-### `data/character_debut_years.json`
-
-- 内容：角色英文标签 → 出道年/日期、来源标记。
-- 用途：角色级日期门控与画师策略分档。
-- 来源：人工预设 + DeepSeek 联网确认 + 百科页面核对；属于近似数据，可能有个别误差。
-
-### 联网来源
-
-选角与日期核验使用公开搜索引擎（Bing RSS、360 等）和百科/WIKI 域名摘要；代码只采信限定域名的日期证据，查不到时会舍弃角色，而不是猜测。
-
----
-
-## 安全与隐私
-
-- 仓库不包含 API key、登录凭据、会话材料、个人身份信息。
-- `COMFY_DIR` / `COMFY_PYTHON` 默认为空，路径只从环境变量读取。
-- 仓库不包含模型权重、LoRA、生成图库或本地缓存。
-- 公开样图已去除原始标题、画师名和文件元数据。
-- 外部 API 调用会把角色文本或参考图发送到服务商；请自行评估隐私与合规要求。
-- 详见 [SECURITY.md](SECURITY.md)。
-
----
-
-## 已知限制
-
-- 门控依赖 Danbooru 覆盖度；小众角色、非 Danbooru 作品可能被拒绝。
-- Anima-2.9B 的知识截止按 2025-09 处理，之后出道的角色会被拦截。
-- 画师组合基于有限样本，不代表普遍审美结论；换 seed/机器结果会变。
-- `anima_flow` 需要额外 ComfyUI 节点；没有该节点时请只用 `api`。
-- 本地美学评分模型未随仓库提供；缺失时选优退化为随机/同分选择。
-- 公开版不包含人物 LoRA，因此不会通过 LoRA 提升角色还原度。
-
----
-
-## 常见问题
-
-**Q：启动时报 `DEEPSEEK_API_KEY` 相关错误？**  
-A：先设置环境变量。模块导入不会因空 key 崩溃，但实际调用会鉴权失败。
-
-**Q：`python ensure_comfyui.py --status` 显示未运行？**  
-A：先手动启动 ComfyUI；或设置 `COMFY_DIR` / `COMFY_PYTHON` 让脚本尝试拉起。
-
-**Q：`anima_flow` 报未知节点 `AnimaFlowCorrectiveSampler`？**  
-A：安装对应 ComfyUI 扩展，或把 `config.WORKFLOW_POOL` 改为 `["api"]`。
-
-**Q：角色一直被门控拒绝？**  
-A：这是预期行为：门控宁可换人，也不让模型画一个它不认识的通用脸。可在 `config.py` 调整投稿数阈值，但这会降低还原度保障。
-
-**Q：为什么没有 LoRA？**  
-A：公开版只保留 Anima 的纯提示词线路。LoRA 的下载、家族校验、挂载和质量 A/B 已整体移除。
-
----
-
-## 说明
-
-- 本项目仅用于个人研究与技术交流。
-- 模型、画师标签、角色与作品名称归各自权利人所有。
-- 生成内容的使用需遵守模型许可、所在地区法律和平台条款。
+输出目录实际还包含微秒和随机短标识，避免同一秒任务重名。图片和数据分开放置，打开 `查看图片.html` 可比较候选并进入其提示词记录。ComfyUI 自己的输出目录也可能保留一份图片，这是本地绘图服务的行为。
+
+| 想调整的内容 | 优先阅读／修改 |
+|---|---|
+| 模型、采样组合、画风池、CFG、预算、季节和场景池 | [`config.py`](config.py) |
+| 自选菜单、一次运行的参数覆盖和恢复 | [`custom_entry.py`](custom_entry.py) |
+| 自动选角、联网工具循环、thinking 回填、会话串接 | [`pipeline_character.py`](pipeline_character.py) |
+| 来源查询、正文与可追溯事实 | [`prompt_refinement.py`](prompt_refinement.py)、[`web_search.py`](web_search.py) |
+| 人物预检、事实修正、有限换人 | [`anima_character_card.py`](anima_character_card.py) |
+| 版本／来源优先级、轻微外观分歧 | [`anima_source_policy.py`](anima_source_policy.py)、[`anima_character_variants.py`](anima_character_variants.py) |
+| 分阶段设计、条件审查、局部修正、编译、冻结 | [`anima_prompt_pipeline.py`](anima_prompt_pipeline.py) |
+| 术语保真、审查归因、可见性和字段契约 | [`anima_fact_semantics.py`](anima_fact_semantics.py)、[`anima_prompt_contracts.py`](anima_prompt_contracts.py) |
+| 动作／表情／镜头最终文字协调 | [`anima_visual_focus.py`](anima_visual_focus.py) |
+| 实际采样图、候选生成、评分与本地选图 | [`comfy_runner.py`](comfy_runner.py) |
+| 图片画廊 | [`anima_prompt_storage.py`](anima_prompt_storage.py) |
+
+画风菜单统一使用“画风标签／画风组合”。内部保留 `ARTIST_*`、`artist_roll` 等历史配置和函数名以保持调用兼容，原始 `@...` 模型标签与负面标签 `artist name` 也按模型词法保留；改称呼不等于重写这些 token。
+
+微调时尽量固定人物、主题、权重、采样器和 seed，一次只改一个设计职责；同时比较原本满意和不满意的图片。优先修事实依据、字段冲突和画面组织，避免仅凭最高美学分启用新策略。仓库不附带内部测试脚本、私人样图、运行数据或账号资料。
+
+## 数据流与安全
+
+LLM 与联网是外部 API：人物／作品标签、研究文本、阶段输入会发给配置的模型服务，搜索词与目标 URL 会发给搜索／抓页服务。绘图和美学排序默认在本地执行；自动选角在部分主题下还沿用可选的参考图体型核对分支，该分支会把参考图发给配置的模型 API，且要求服务支持图像输入；它不构成可靠的人体或身份检测器。详见 [`SECURITY.md`](SECURITY.md)。
+
+只公开经过整理的源代码和静态标签数据；不包含个人机器路径、密钥、登录态、发布队列或运行历史。运行后新增的图片、网页引文、提示词和错误记录仍可能包含个人输入或本地绝对路径，已默认排除版本控制，分享前应自行检查。模型权重、标签数据与原始画风 token 的上游许可和使用条件请分别遵守。

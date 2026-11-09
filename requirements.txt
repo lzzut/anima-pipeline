@@ -1,5 +1,5 @@
 httpx>=0.27
-openai>=1.30
+openai>=1.68
 Pillow>=10.0
 beautifulsoup4>=4.12
 lxml>=5.0

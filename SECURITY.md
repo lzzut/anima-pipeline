@@ -1,68 +1,32 @@
-# Security Policy
+# 数据与凭据边界
 
-## Scope
+本仓库公开内容是本地出图源码、两张空提示词工作流和静态标签数据。它不包含平台发布代码、账号登录工具、排期、个人机器设置、API 凭据、运行样图、人物池、黑名单、长期人物／性格卡或历史迁移逻辑。
 
-This repository contains the image-generation pipeline code and two small sample images.
+## 凭据
 
-It does **not** include:
+DeepSeek 密钥从 `DEEPSEEK_API_KEY` 环境变量或本机 `.env` 读取，不输出密钥，不写入任务元数据。`.env.example` 只有占位值。可选 Tavily 搜索密钥也从环境变量读取。不要把密钥放进 `config.py`、命令截图、问题附件或工作流 JSON；不要提交登录 Cookie、会话文件或本地设置。
 
-- model weights (`.safetensors`, `.ckpt`, `.pt`)
-- generated image libraries
-- personal data, login material, or credentials
-- local runtime caches
+改变 `DEEPSEEK_BASE_URL` 会改变密钥及 LLM 输入的接收方，使用自己信任的服务。不要将本地 ComfyUI 无认证端口直接暴露到公网；默认地址为 `127.0.0.1`。
 
-## Credentials
+## 哪些信息会联网
 
-No API keys, access tokens, passwords, or login material are stored in this repository.
+| 处理 | 去向 | 数据 |
+|---|---|---|
+| 选角、事实抽取、设计、审查与修正 | 配置的 DeepSeek／兼容模型 API | 人物作品标签、来源文本、画面设计、被核对字段。 |
+| 搜索与正文抓取 | DeepSeek Search/Fetch，失败时可能使用配置的搜索后备服务、网页站点 | 搜索词、目标 URL、常规请求信息。 |
+| 标签、首帖或参考图查询 | 静态标签来源、Booru 等配置站点 | 人物／作品标签及查询。 |
+| 自动门控中的体型参考核对（适用主题） | 配置模型 API，需服务支持图像输入 | 参考图库中的缩略图。服务不支持时返回未知；不能据此宣称已可靠审图。 |
+| 图像生成 | 默认本地 ComfyUI | 实际正负提示词、seed、工作流参数。若把 COMFY_URL 改成远程，该接收方也会获得这些信息。 |
+| 候选美学排序 | 本机 Transformers／PyTorch | 图片不向评分服务上传；模型需事先下载。 |
 
-Configuration is read from environment variables:
+网页作为不可信资料处理，不把网页中的指令当作程序授权。来源引用用于检查事实支持，不能保证外部网页永远可用、无错误或完全没有提示注入内容。
 
-```text
-DEEPSEEK_API_KEY
-DEEPSEEK_BASE_URL   (optional)
-DEEPSEEK_MODEL      (optional)
-COMFY_URL           (optional)
-COMFY_DIR
-COMFY_PYTHON
-```
+## 本机生成的数据
 
-Example:
+本次输出保留图片、网页引用、阶段输入输出、错误类型、实际工作流、提示词和 seed，可能包含你输入的内容或绝对路径。这些文件只放在被 Git 忽略的 `output/` 中，不会由下一次任务自动读回。内存复用只发生在当前进程／当前会话，没有公开长期人物缓存、轮换账本或拒绝历史文件。
 
-```powershell
-$env:DEEPSEEK_API_KEY = "..."
-$env:COMFY_DIR = "C:\path\to\ComfyUI"
-$env:COMFY_PYTHON = "C:\path\to\ComfyUI\venv\Scripts\python.exe"
-python pipeline_character.py
-```
+可选 ComfyUI 自动启动器会生成本机服务 PID 和日志，用于同进程管理绘图服务；它们也被忽略。这不是人物信息持久化、发布排期或操作系统计划任务。
 
-Do not commit a `.env` file or shell history containing real values.
+上传问题附件或分享生成图前，检查 PNG 内嵌工作流、任务数据和日志。`.gitignore` 只能避免通常的误提交，不能清除已经提交过的文件，也不能替代发布前查看完整 diff。将项目复制到自己的环境时，应从自己的环境变量和模型配置开始，不复用他人的本地目录或账号设置。
 
-## Local paths
-
-No machine-specific absolute paths are committed.
-
-If you find one, open an issue with the path redacted rather than committing a replacement containing another personal path.
-
-## Data
-
-The `data/` directory contains only:
-
-- a Danbooru tag/count index
-- artist combination identifiers
-- character debut years
-
-Sources are documented in the README. These values are approximate and may become outdated.
-
-## External requests
-
-The pipeline calls:
-
-- a local ComfyUI server;
-- the DeepSeek API for character selection, prompt generation, and optional body-type review;
-- public image/tag sources for character reference and tag counts.
-
-Image or text data sent to an external API leaves your machine. Review the provider's terms before use.
-
-## Reporting
-
-If you find a credential, personal path, or private information in the repository, open an issue with the value redacted, or contact the maintainer privately. Do not reproduce the value in a public issue.
+静态 `data/danbooru_tags.csv` 沿用公开版的标签数据，用于标签类别与数量查询；不包含私人人物记录。其来源是 `DominikDoom/a1111-sd-webui-tagcomplete` 的标签表，数量是该快照时的统计，不等同实时热度或模型训练清单。使用模型、标签数据与风格 token 时分别核对上游许可。

@@ -57,7 +57,7 @@
   },
   "7": {
     "inputs": {
-      "seed": 15,
+      "seed": 42,
       "steps": 50,
       "cfg": 3.7,
       "cfg_mode": "ramp cfg",

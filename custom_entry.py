@@ -1,20 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-custom_entry.py — 自定义人物 / 模型 / 画师入口（新增功能，不改动原自动化流程）
+"""Implementation details: see docs/ARCHITECTURE.md."""
 
-运行：
-    python custom_entry.py            # 交互菜单
-    python custom_entry.py --list     # 只列出模型/采样器/画师
-    python custom_entry.py --dry-run  # 走完菜单但不真的出图
-
-菜单编号：
-    工作流：动态列出 config.WORKFLOW_SETTINGS 中已注册的 key
-            （包括用户自己注册并加入 WORKFLOW_POOL 的工作流）
-            9=修改 ComfyUI 路径
-    选中工作流后：再选采样器组合、画师组合（有多个选项时才需要选）
-"""
 import json
 import os
+import random
 import sys
 import time
 
@@ -22,35 +10,26 @@ try:
     sys.stdout.reconfigure(encoding="utf-8")
 except Exception:
     pass
-
 import config as cfg
 import comfy_runner as cr
-import pipeline_character as pc
-import artist_matrix_test as am
+import prompt_utils as am
 from ensure_comfyui import ensure_comfyui
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-SETTINGS_PATH = os.path.join(BASE, "user_settings.json")
-OUT_ROOT = os.path.join(BASE, "output", "_custom_entry")
-
-def model_entries():
-    """所有已注册工作流；WORKFLOW_POOL 内的排前面。"""
-    keys = []
-    for k in list(cfg.WORKFLOW_POOL) + list(cfg.WORKFLOW_SETTINGS):
-        if k in cfg.WORKFLOW_SETTINGS and k not in keys:
-            keys.append(k)
-    out = []
-    for k in keys:
-        info = cfg.WORKFLOW_MODEL_INFO.get(k, {})
-        label = info.get("label") or k
-        desc = info.get("family") or (
-            "自定义工作流" if k not in ("api", "anima_flow") else "")
-        if k not in cfg.WORKFLOW_POOL:
-            desc = (desc + "（未加入自动池）").strip()
-        out.append((k, label, desc))
-    return out
-
-# 画师组合简要说明（按主画师）
+ALL_MODELS = [
+    ("api", "Anima-2.9B api", "KSampler：可选 4 组采样器组合"),
+    ("anima_flow", "Anima-2.9B anima-flow", "AnimaFlowCorrectiveSampler 工作流"),
+]
+SYSTEM_MODELS = [
+    m for m in ALL_MODELS if m[0] in tuple(getattr(cfg, "WORKFLOW_POOL", ("api", "anima_flow")))
+]
+THEME_MENU = list(cfg.LOCAL_THEMES)
+ROUTES = [
+    ("mixed", "随机（与自动本地出图一致：约 1/3 固定背景，2/3 DeepSeek 设计）"),
+    ("deepseek", "DeepSeek 自己设计地点"),
+    ("fixed", "固定背景清单里随机取一个"),
+]
+VARIANTS = [("random", "随机"), ("native", "原生 bf16"), ("int8", "int8 量化")]
 ARTIST_NOTES = {
     "@yaner": "柔和厚涂、动画脸，适合芙宁娜/初音",
     "@ciloranko": "干净线稿、时尚构图，适合现代装",
@@ -80,80 +59,29 @@ ARTIST_NOTES = {
 }
 
 
-def load_json(path, default):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return default
-
-
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
 
 
-def load_settings():
-    s = load_json(SETTINGS_PATH, {})
-    if s.get("comfyui_dir"):
-        cfg.COMFY_DIR = s["comfyui_dir"]
-    if s.get("comfyui_python"):
-        cfg.COMFY_PYTHON = s["comfyui_python"]
-    try:
-        import ensure_comfyui as ec
-        ec.COMFY_DIR = cfg.COMFY_DIR
-        ec.COMFY_PYTHON = cfg.COMFY_PYTHON
-    except Exception:
-        pass
-    return s
-
-
-def save_settings(s):
-    save_json(SETTINGS_PATH, s)
-
-
 def list_models():
-    print("\n可选工作流：")
-    for i, (key, name, desc) in enumerate(model_entries(), 1):
+    print("\n可选模型：")
+    for i, (key, name, desc) in enumerate(SYSTEM_MODELS, 1):
         info = cfg.WORKFLOW_MODEL_INFO.get(key, {})
-        print(f"  {i}. {name}  [{key}]  | 截止 {info.get('cutoff', '?')}  | {desc}")
+        print(f"  {i}. {name}  | 截止 {info.get('cutoff', '?')}  | {desc}")
     print("  9. 修改 ComfyUI 路径")
     print("  q. 退出")
 
 
-def sampler_entries(workflow="api"):
-    """当前工作流可选的采样器组合；只有一项时自动使用。"""
-    st = cfg.WORKFLOW_SETTINGS.get(workflow, {})
-    if workflow == "api":
-        return list(cfg.KSAMPLER_COMBOS)
-    if workflow == "anima_flow":
-        return [(None, None, int(st.get("steps", 50)),
-                 float(st.get("cfg", 5.0)), "AnimaFlow 固定采样器")]
-    combos = st.get("sampler_combos") or []
-    if combos:
-        return [tuple(c) for c in combos if isinstance(c, (list, tuple)) and len(c) >= 5]
-    if st.get("sampler") or st.get("scheduler") or st.get("steps"):
-        return [(st.get("sampler"), st.get("scheduler"),
-                 int(st.get("steps", 30)), float(st.get("cfg", 5.0)),
-                 "工作流默认")]
-    return []
-
-
-def list_samplers(workflow="api"):
-    entries = sampler_entries(workflow)
-    print(f"\n采样器组合（{workflow}）：")
-    if not entries:
-        print("  工作流 JSON 内置采样器，无额外选项")
-        return entries
-    for i, c in enumerate(entries, 1):
-        print(f"  {i}. {c[4]}  [{c[0] or '默认'} + {c[1] or '默认'} / "
-              f"{c[2]}步 / cfg{c[3]}]")
-    return entries
+def list_samplers():
+    print("\n采样器组合（仅 api；anima-flow 用固定的 Flow 参数）：")
+    for i, c in enumerate(cfg.KSAMPLER_COMBOS, 1):
+        print(f"  {i}. {c[4]}  [{c[0]} + {c[1]} / {c[2]}步 / cfg{c[3]}]")
 
 
 def list_artists():
     combos = list(dict.fromkeys(cfg.anima_artist_combos("__global__")[1]))
-    print("\n画师组合（Anima @ 权重语法）：")
+    print("\n画风组合：")
     for i, c in enumerate(combos, 1):
         primary = c.split(",")[0].strip()
         note = ARTIST_NOTES.get(primary, "综合风格")
@@ -161,12 +89,29 @@ def list_artists():
     return combos
 
 
+def list_themes():
+    print("\n主题：")
+    for i, t in enumerate(THEME_MENU, 1):
+        print(f"  {i:2d}. {t}")
+
+
+def _pick(options, prompt, default=1):
+    raw = input(prompt).strip() or str(default)
+    try:
+        n = int(raw)
+        if 1 <= n <= len(options):
+            return options[n - 1]
+    except ValueError:
+        pass
+    print(f"编号无效，用 {default}")
+    return options[default - 1]
+
+
 def choose_model():
-    models = model_entries()
     list_models()
-    raw = input("\n选择工作流编号：").strip().lower()
+    raw = input("\n选择模型编号：").strip().lower()
     if raw == "q":
-        return None, None
+        return (None, None)
     if raw == "9":
         change_comfyui_path()
         return choose_model()
@@ -175,40 +120,54 @@ def choose_model():
     except ValueError:
         print("编号无效")
         return choose_model()
-    if 1 <= n <= len(models):
-        return models[n - 1][0], models[n - 1][1]
+    if 1 <= n <= len(SYSTEM_MODELS):
+        return (SYSTEM_MODELS[n - 1][0], SYSTEM_MODELS[n - 1][1])
     print("编号无效")
     return choose_model()
 
 
+def choose_variant():
+    print("\n权重：")
+    for i, (_, label) in enumerate(VARIANTS, 1):
+        print(f"  {i}. {label}")
+    return _pick(VARIANTS, "选择权重编号（默认 1 随机）：")[0]
+
+
 def choose_sampler(workflow):
-    entries = list_samplers(workflow)
-    if not entries:
+    if workflow != "api":
         return None
-    if len(entries) == 1:
-        print(f"只有一种采样器组合，自动使用：{entries[0][4]}")
-        return entries[0]
-    raw = input("\n选择采样器组合编号（默认 1）：").strip() or "1"
-    try:
-        return entries[int(raw) - 1]
-    except Exception:
-        print("编号无效，用 1")
-        return entries[0]
-
-
-def choose_artist(workflow):
-    if workflow not in ("api", "anima_flow"):
-        print("注意：自定义模型未必支持 Anima 的 @ 画师串/权重语法；"
-              "仍可注入，效果需自测。")
-    combos = list_artists()
-    raw = input("\n选择画师组合编号（0=不加画师，默认 0）：").strip() or "0"
+    list_samplers()
+    raw = input("\n选择采样器组合编号（0=随机，与自动本地出图一致；默认 0）：").strip() or "0"
     if raw == "0":
         return None
     try:
+        if not 1 <= int(raw) <= len(cfg.KSAMPLER_COMBOS):
+            raise ValueError
+        return cfg.KSAMPLER_COMBOS[int(raw) - 1]
+    except Exception:
+        print("编号无效，用随机")
+        return None
+
+
+def choose_artist(workflow):
+    combos = list_artists()
+    raw = (
+        input("\n选择画风组合编号（r=随机，与自动本地出图一致；0=不加画风；默认 r）：")
+        .strip()
+        .lower()
+        or "r"
+    )
+    if raw == "r":
+        return "random"
+    if raw == "0":
+        return None
+    try:
+        if not 1 <= int(raw) <= len(combos):
+            raise ValueError
         return combos[int(raw) - 1]
     except Exception:
-        print("编号无效，用不加画师")
-        return None
+        print("编号无效，用随机")
+        return "random"
 
 
 def ask_character():
@@ -217,126 +176,257 @@ def ask_character():
     series_cn = input("作品中文名：").strip()
     name_en = input("人物英文标签（如 furina_(genshin_impact)）：").strip()
     series = input("作品英文标签（如 genshin_impact）：").strip()
-    theme = input("主题（默认 四季常装）：").strip() or "四季常装"
-    framing = input("景别（默认 cowboy shot）：").strip() or "cowboy shot"
-    seed = input("seed（默认 20261022）：").strip() or "20261022"
+    version = input("外观版本（默认 default appearance）：").strip() or "default appearance"
     return {
         "name_cn": name_cn or name_en,
         "series_cn": series_cn or series,
         "name_en": name_en,
         "series": series,
-        "theme": theme,
-        "framing": framing,
-        "seed": int(seed) if seed.isdigit() else 20261022,
+        "version": version,
     }
 
 
-def build_prompt(char, workflow):
-    st = pc.ask_ai_prompt(char["name_cn"], char["series_cn"], char["name_en"],
-                          char["series"], char["theme"],
-                          framing=char["framing"], workflow=workflow)
-    pos = pc.assemble_positive_prompt(
-        st, char["name_en"], char["series"], char["framing"],
-        extra_fields=tuple(getattr(cfg, "ANIMA_EXTRA_TEMPLATE_FIELDS", ()) or ()))
-    if workflow in ("api", "anima_flow"):
-        pos = pc._fix_anima_prompt(pos, char["name_en"], char["series"])
-    neg = pc.build_negative(st.get("negative") or st.get("negatives", ""))
-    pos, neg = cr.format_prompt(workflow, pos, neg, identity=st, theme=char["theme"])
-    if workflow in ("api", "anima_flow"):
-        for extra in (cfg.ANIMA_DYNAMIC_NEGATIVE, cfg.ANIMA_INTEGRATION_NEGATIVE):
-            if extra and extra.split(",")[0].strip().lower() not in neg.lower():
-                neg += ", " + extra
-    return pos, neg
+def choose_theme():
+    list_themes()
+    return _pick(THEME_MENU, "选择主题编号（默认 13 四季常装）：", default=13)
 
 
-def generate(workflow, model_label, char, sampler=None, artist=None, dry_run=False):
-    if workflow not in cr.WORKFLOW_SETTINGS:
-        raise ValueError(f"未知工作流：{workflow}")
-    st = cfg.WORKFLOW_SETTINGS.get(workflow, {})
-    if sampler is None and workflow == "api":
-        sampler = cfg.KSAMPLER_COMBOS[0]
-    print(f"\n[生成] {model_label} | {char['name_cn']} | 主题 {char['theme']} | 景别 {char['framing']}")
-    print(f"       画师：{artist or '无'} | 采样器：{sampler[4] if sampler else '工作流默认'}")
+def choose_route():
+    print("\n背景线路：")
+    for i, (_, label) in enumerate(ROUTES, 1):
+        print(f"  {i}. {label}")
+    return _pick(ROUTES, "选择背景线路编号（默认 1）：")[0]
+
+
+def choose_count():
+    raw = (
+        input("\n出图张数（5=同一提示词换 5 个 seed 后美学选 1；1=单张；默认 5）：").strip() or "5"
+    )
+    count = 1 if raw == "1" else 5
+    raw_seed = input("起始 seed（留空随机；5 张时依次 +1）：").strip()
+    if not raw_seed:
+        return count, None
+    try:
+        seed = int(raw_seed)
+        if not 0 <= seed <= cfg.seed_max_for("api") - count + 1:
+            raise ValueError
+    except ValueError:
+        raise ValueError("seed 及连续候选必须落在 0..2147483647。")
+    return count, [seed + k for k in range(count)]
+
+
+def build_v2(char, workflow, route, *, audit_dir=None, prompt_session=None):
+    """Use the same approved evidence session and writing chain as automatic generation."""
+    pc = _pipeline()
+    cfg.SCENE_CONTENT_SOURCE = route
+    if prompt_session is None:
+        prompt_session = pc._prepare_character_facts(
+            {
+                "name": char["name_cn"],
+                "series": char["series_cn"],
+                "name_en": char["name_en"],
+                "series_en": char["series"],
+                "appearance_version": char["version"],
+            },
+            audit_dir,
+        )
+    return pc._build_all_channel_prompts(
+        cfg.active_prompt_channels(),
+        name=char["name_cn"],
+        series=char["series_cn"],
+        name_en=char["name_en"],
+        series_en=char["series"],
+        theme=char["theme"],
+        prompt_theme=char["theme"],
+        framing="",
+        workflow=workflow,
+        appearance_version=char["version"],
+        prompt_session=prompt_session,
+        audit_dir=audit_dir,
+    )
+
+
+def generate(
+    workflow,
+    model_label,
+    char,
+    *,
+    variant="random",
+    sampler=None,
+    artist="random",
+    route="mixed",
+    count=5,
+    seeds=None,
+    dry_run=False,
+    output_dir=None,
+    prompt_session=None,
+):
+    print(
+        f"\n[生成] {model_label} | {char['name_cn']} | 主题 {char['theme']} | 线路 {route} | {count} 张"
+    )
+    print(
+        f"       权重：{variant} | 画风：{artist or '无'} | 采样器：{(sampler[4] if sampler else '随机')}"
+    )
     if dry_run:
-        print("[dry-run] 不实际出图")
+        print("[dry-run] 不调用 DeepSeek、不出图")
         return None
-    if workflow in ("api", "anima_flow"):
-        cfg.set_active_unet("native")
-    ensure_comfyui()
-    pos, neg = build_prompt(char, workflow)
-    if artist:
-        pos = am._replace_artist(pos, char["series"], artist)
-    out_dir = os.path.join(OUT_ROOT, time.strftime("%Y-%m-%d"))
+    if (
+        workflow not in cfg.WORKFLOW_POOL
+        or variant not in ("random", "native", "int8")
+        or route not in ("mixed", "deepseek", "fixed")
+        or count not in (1, 5)
+    ):
+        raise ValueError("无效的本地出图选项。")
+    if seeds is not None and (
+        len(seeds) != count
+        or any(
+            isinstance(seed, bool)
+            or not isinstance(seed, int)
+            or not 0 <= seed <= cfg.seed_max_for(workflow)
+            for seed in seeds
+        )
+    ):
+        raise ValueError("seed 数量或取值无效。")
+    out_dir = output_dir or _pipeline().new_run_dir("custom", char["name_en"] + "_" + char["theme"])
     os.makedirs(out_dir, exist_ok=True)
-    out = os.path.join(out_dir, f"{am._slug(char['name_en'], 40)}_{am._slug(char['theme'], 20)}.png")
-    steps = sampler[2] if sampler else int(st.get("steps", 30))
-    conf = sampler[3] if sampler else float(st.get("cfg", 5.0))
-    sp = sampler[0] if sampler else st.get("sampler")
-    sc = sampler[1] if sampler else st.get("scheduler")
-    flow_settings = (cfg.ANIMA_FLOW_SETTINGS if workflow == "anima_flow"
-                     else st.get("flow_settings"))
-    got = cr._run_once(workflow, pos, neg, char["seed"], out,
-                       steps=steps, cfg=conf, sampler=sp, scheduler=sc,
-                       flow_settings=flow_settings)
-    score = None
+    saved = {
+        "variant": cr.anima_model_roll,
+        "artist_roll": cr.artist_roll,
+        "combos": cr.anima_artist_combos,
+        "samplers": cr.KSAMPLER_COMBOS,
+        "route": cfg.SCENE_CONTENT_SOURCE,
+    }
     try:
-        score = round(cr._score_image(got), 3)
-    except Exception:
-        pass
-    print(f"\n[输出] {got} | score={score}")
-    save_json(os.path.join(out_dir, "last_entry.json"), {
-        "workflow": workflow, "model": model_label, "character": char,
-        "artist": artist, "sampler": sampler, "file": got, "score": score,
-    })
-    return got
-
-
-def change_comfyui_path():
-    s = load_settings()
-    print(f"\n当前 ComfyUI 目录：{getattr(cfg, 'COMFY_DIR', '?')}")
-    d = input("新 ComfyUI 目录（留空不改）：").strip()
-    p = getattr(cfg, "COMFY_PYTHON", "")
-    print(f"当前 Python：{p}")
-    py = input("新 ComfyUI Python 路径（留空不改）：").strip()
-    if d:
-        s["comfyui_dir"] = d
-        cfg.COMFY_DIR = d
-    if py:
-        s["comfyui_python"] = py
-        cfg.COMFY_PYTHON = py
-    save_settings(s)
-    try:
-        import ensure_comfyui as ec
-        ec.COMFY_DIR = cfg.COMFY_DIR
-        ec.COMFY_PYTHON = cfg.COMFY_PYTHON
-    except Exception:
-        pass
-    print("已保存到 user_settings.json")
+        built = build_v2(
+            char,
+            workflow,
+            route,
+            audit_dir=os.path.join(out_dir, "数据", "提示词会话"),
+            prompt_session=prompt_session,
+        )
+        prompt_list = [
+            {
+                "positive": b["positive"],
+                "negative": b["negative"],
+                "identity": {
+                    "name_en": char["name_en"],
+                    "series_en": char["series"],
+                    "anima_prompt_contract": (b.get("structured") or {}).get(
+                        "anima_prompt_contract"
+                    ),
+                    "eye_colors": str((b.get("structured") or {}).get("eye_colors", "")).strip(),
+                },
+                "theme": char["theme"],
+                "candidate_prompts": (b.get("structured") or {}).get("candidate_prompts"),
+                "channel": b["channel"],
+                "prompt_session_audit": (b.get("structured") or {}).get("prompt_session_audit"),
+            }
+            for b in built
+        ]
+        ensure_comfyui()
+        if variant != "random":
+            cr.anima_model_roll = lambda: variant
+        if artist is None:
+            lo, hi = getattr(cfg, "ARTIST_CFG_OFF_RANGE", (3.5, 5.0))
+            cr.artist_roll = lambda: (False, round(random.uniform(lo, hi), 2))
+        elif artist != "random":
+            cr.artist_roll = lambda: (True, getattr(cfg, "ARTIST_CFG_ON", 3.7))
+            cr.anima_artist_combos = lambda series: ("custom", [artist])
+        if sampler:
+            cr.KSAMPLER_COMBOS = [sampler]
+        os.makedirs(out_dir, exist_ok=True)
+        result = cr.generate_images(
+            prompt_list=prompt_list,
+            output_dir=out_dir,
+            candidates=count,
+            workflow=workflow,
+            seeds=seeds,
+            run_retries=0,
+            before_retry=ensure_comfyui,
+        )
+    finally:
+        cr.anima_model_roll, cr.artist_roll = (saved["variant"], saved["artist_roll"])
+        cr.anima_artist_combos, cr.KSAMPLER_COMBOS = (saved["combos"], saved["samplers"])
+        cfg.SCENE_CONTENT_SOURCE = saved["route"]
+    if not result:
+        raise RuntimeError("出图失败：没有生成可用图片，请查看本次运行日志")
+    print(f"\n[输出] {out_dir}")
+    save_json(
+        os.path.join(out_dir, "last_entry.json"),
+        {
+            "workflow": workflow,
+            "model": model_label,
+            "character": char,
+            "variant": variant,
+            "artist": artist,
+            "sampler": sampler,
+            "route": route,
+            "count": count,
+            "seeds": seeds,
+            "result": str(result)[:2000],
+        },
+    )
+    return result
 
 
 def main():
     dry = "--dry-run" in sys.argv
     if "--list" in sys.argv:
-        models = model_entries()
         list_models()
-        for key, _label, _desc in models:
-            list_samplers(key)
+        list_samplers()
         list_artists()
+        list_themes()
         return
-    load_settings()
     print("=" * 70)
-    print("自定义人物入口（原自动化流程不受影响）")
+    print("Anima 本地自选出图：人物、主题、工作流和画风")
     print("=" * 70)
     workflow, label = choose_model()
     if not workflow:
         return
+    variant = choose_variant()
     sampler = choose_sampler(workflow)
     artist = choose_artist(workflow)
     char = ask_character()
     if not char["name_en"] or not char["series"]:
         print("人物/作品英文标签不能为空")
         return
-    generate(workflow, label, char, sampler=sampler, artist=artist, dry_run=dry)
+    char["theme"] = choose_theme()
+    route = choose_route()
+    count, seeds = choose_count()
+    return generate(
+        workflow,
+        label,
+        char,
+        variant=variant,
+        sampler=sampler,
+        artist=artist,
+        route=route,
+        count=count,
+        seeds=seeds,
+        dry_run=dry,
+    )
+
+
+def _pipeline():
+    import pipeline_character as pc
+
+    pc.configure_client()
+    return pc
+
+
+def change_comfyui_path():
+    import ensure_comfyui as ec
+
+    print("本次会话使用的 ComfyUI 路径；下次启动请用环境变量配置。")
+    directory = input("ComfyUI 目录（留空保持）：").strip()
+    python = input("ComfyUI Python 路径（留空保持）：").strip()
+    if directory:
+        cfg.COMFY_DIR = ec.COMFY_DIR = directory
+    if python:
+        cfg.COMFY_PYTHON = ec.COMFY_PYTHON = python
+    enabled = bool(cfg.COMFY_DIR and cfg.COMFY_PYTHON)
+    cfg.COMFY_AUTOSTART = ec.COMFY_AUTOSTART = enabled
+    print("本进程配置已更新；未写入长期设置。")
 
 
 if __name__ == "__main__":

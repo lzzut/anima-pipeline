@@ -1,30 +1,8 @@
-# custom_entry.py 使用说明
+# 自选出图系统
 
-`custom_entry.py` 是手工入口：你先选已注册工作流，再指定角色、采样器和画师组合，跳过自动选角与角色门控。
+入口是仓库根目录的 `custom_entry.py`。它使用与自动本地出图相同的 DeepSeek V4 Flash 1017 → Anima-2.9B 提示词链；由你指定人物、主题和绘图参数，程序负责查资料、预检、设计、审查、采样及本地选图。
 
-适合：
-
-- 已经知道要画哪个角色，想换工作流、采样器或画师组合
-- 想固定 seed 复现某张图
-- 想先确认 ComfyUI / 提示词链路是否正常
-- 不想让自动选角改变角色
-
-不适合：
-
-- 不知道画谁，想让 DeepSeek 自动选角 → 用 `pipeline_character.py`
-- 需要角色能力门控、热度过滤、自动换人 → 用主链
-
----
-
-## 三条命令
-
-| 命令 | 作用 | 需要 DeepSeek key | 需要 ComfyUI | 出图 |
-|---|---|---|---|---|
-| `python custom_entry.py --list` | 列出已注册工作流、采样器、画师组合 | 否 | 否 | 否 |
-| `python custom_entry.py --dry-run` | 完整走一遍菜单，只打印结果 | 否 | 否 | 否 |
-| `python custom_entry.py` | 真正生成一张图 | 是 | 是 | 是 |
-
-推荐顺序：
+## 启动
 
 ```powershell
 python custom_entry.py --list
@@ -32,175 +10,97 @@ python custom_entry.py --dry-run
 python custom_entry.py
 ```
 
----
+`--list` 只列工作流、采样器、画风组合及主题，不需要密钥或 ComfyUI。`--dry-run` 会走完菜单并打印选择，不调用 DeepSeek、不检查或启动 ComfyUI、不出图；它不能证明模型、节点、网络或评分器已经配置正确。
 
-## 1. 查看选项
+真实生成前按根目录 [README](../README.md) 配置 API 密钥、ComfyUI 与模型，五选一还要提前准备本地评分器。
 
-```powershell
-python custom_entry.py --list
-```
+## 菜单顺序和含义
 
-输出包括：
-
-- 所有已注册工作流；默认是 `api`、`anima_flow` 两条 Anima 线
-- 每个工作流对应的采样器组合：`api` 默认 4 组，`anima_flow` 固定 1 组，自定义工作流看 `sampler_combos`
-- 27 组去重后的画师组合
-
-自定义 workflow 不能只放 JSON；必须先在 `config.py` 注册，详见 [WORKFLOW_EXTENSION.md](WORKFLOW_EXTENSION.md)。
-
-这一步不会调用 DeepSeek，也不会连接 ComfyUI。
-
----
-
-## 2. 演练输入
-
-```powershell
-python custom_entry.py --dry-run
-```
-
-它会依次询问下面的问题，最后打印：
-
-```text
-[生成] Anima-2.9B api | 初音未来 | 主题 四季常装 | 景别 cowboy shot
-       画师：无 | 采样器：作者最爱：euler + sgm-uniform / 50步 / cfg3.7
-[dry-run] 不实际出图
-```
-
-`--dry-run` 不会：
-
-- 调用 DeepSeek
-- 启动或连接 ComfyUI
-- 写图片
-- 写 `last_entry.json`
-
-但仍然要把所有输入走完。
-
----
-
-## 3. 实际出图
-
-### 前置条件
-
-```powershell
-$env:DEEPSEEK_API_KEY = "你的 key"
-```
-
-ComfyUI 需要已经运行，或者配置自动拉起：
-
-```powershell
-$env:COMFY_DIR = "C:\path\to\ComfyUI"
-$env:COMFY_PYTHON = "C:\path\to\ComfyUI\venv\Scripts\python.exe"
-```
-
-### 启动
-
-```powershell
-python custom_entry.py
-```
-
-### 完整交互示例
-
-下面以“初音未来 / Vocaloid / 不加画师 / 默认采样器”为例：
-
-```text
-选择工作流编号：1
-  1 = Anima-2.9B-preview-v1 [api]
-  2 = Anima-2.9B-preview-v1 [anima_flow]
-  N = config.py 里注册的自定义工作流（如果有）
-  9 = 修改 ComfyUI 路径
-  q = 退出
-
-选择采样器组合编号（默认 1）：1
-  api：4 组 Anima KSampler 组合
-  anima_flow：固定 Flow 采样器，自动使用
-  自定义：有 sampler_combos 才显示多组；只有一组时自动使用
-
-选择画师组合编号（0=不加画师，默认 0）：0
-  0 = 不注入画师串
-  1~27 = 对应画师组合
-
-人物中文名：初音未来
-作品中文名：Vocaloid
-人物英文标签（如 furina_(genshin_impact)）：hatsune_miku
-作品英文标签（如 genshin_impact）：vocaloid
-主题（默认 四季常装）：四季常装
-景别（默认 cowboy shot）：cowboy shot
-seed（默认 20261022）：20261024
-```
-
-### 输入字段说明
-
-| 输入 | 说明 | 示例 |
+| 顺序 | 输入 | 选项与行为 |
 |---|---|---|
-| 人物中文名 | 只用于日志/文件名，不进入英文提示词 | `初音未来` |
-| 作品中文名 | 只用于日志/文件名 | `Vocaloid` |
-| 人物英文标签 | 必须是 Danbooru 角色标签 | `hatsune_miku` |
-| 作品英文标签 | Danbooru 作品/版权标签 | `vocaloid` |
-| 主题 | 决定服装/场景关键词 | `四季常装`、`泳装`、`和服` |
-| 景别 | `cowboy shot` 七分身；`full body` 全身 | `cowboy shot` |
-| seed | 固定后便于复现 | `20261024` |
+| 1 | 工作流 | `1`：Anima `api`；`2`：Anima `anima_flow`；`9`：修改本进程 ComfyUI 路径后返回；`q`：退出。两条线用同一个绘图模型。 |
+| 2 | 权重 | `1` 随机、`2` 原生 bf16、`3` int8。只有一种权重时显式选择它。 |
+| 3 | 采样器组合 | 仅 `api` 提问；`0` 或留空随机，`1..4` 对应当前配置的四组组合。Flow 使用 `ANIMA_FLOW_SETTINGS`。 |
+| 4 | 画风组合 | `r` 或留空随机，`0` 不加，`1..27` 指定当前画风池的一项；以 `--list` 显示的实际编号为准。 |
+| 5 | 人物资料 | 人物中文名、作品中文名、人物英文标签、作品英文标签、外观版本。中文名可空，两个英文标签必填；外观版本默认 `default appearance`。 |
+| 6 | 主题 | `1..18`，留空默认 `13` 四季常装。 |
+| 7 | 背景来源 | `1` mixed：约 1/3 固定场景池、2/3 DeepSeek 设计；`2` deepseek；`3` fixed。 |
+| 8 | 张数 | `1` 单张；`5` 或留空是同一提示词换 5 个 seed 后按美学分选一张。 |
+| 9 | 起始 seed | 留空随机；输入整数后五选一依次加 1。每个 seed 都须在 `0..2147483647`，超范围会报错。 |
 
-带歧义的角色用 `角色_(作品)` 写法：
+当前采样器组合：`euler + sgm_uniform`、`res_multistep + linear_quadratic`、`er_sde + beta57`、`uni_pc + ddim_uniform`，均为 50 步。CFG 由画风策略设置：有画风标签时 3.7，无画风时 3.5～5.0 随机。
+
+当前 18 个主题：
+
+| 编号 | 主题 | 编号 | 主题 | 编号 | 主题 |
+|---:|---|---:|---|---:|---|
+| 1 | 泳装 | 7 | 婚纱 | 13 | 四季常装 |
+| 2 | 比基尼 | 8 | 护士 | 14 | 春景 |
+| 3 | 和服 | 9 | 制服 | 15 | 夏景 |
+| 4 | 浴衣 | 10 | 运动 | 16 | 秋景 |
+| 5 | 女仆 | 11 | 旗袍 | 17 | 冬景 |
+| 6 | 圣诞 | 12 | 礼服 | 18 | 背景 |
+
+四季常装参考当前季节；春景／夏景／秋景／冬景按指定季节设计环境及常装。“背景”偏向保留官方服装并设计环境，依然有人物。室外泳装需有可识别海滩；室内泳装则按泳池规则，和服主题禁止摊位。
+
+“fixed”只是从可配置的场景文字清单里确定本次地点，仍会协调光照、季节、服装和可见范围，不会读取背景参考图片。这里没有边缘参考图或 ControlNet 的必选输入。
+
+## 一个输入例子
 
 ```text
-furina_(genshin_impact)
-march_7th_(honkai:_star_rail)
+工作流：1
+权重：2
+采样器：1
+画风：r
+人物中文名：甘雨
+作品中文名：原神
+人物英文标签：ganyu_(genshin_impact)
+作品英文标签：genshin_impact
+外观版本：default appearance
+主题：3
+背景来源：2
+张数：1
+起始 seed：12345
 ```
 
-### 菜单里的特殊选项
+示例只说明输入格式，并不保证一个特定 seed 一定好看。人物／作品英文标签建议使用 Danbooru 标准写法，特殊版本要写清，避免将多个版本的发型、饰品、服装混成一张卡。
 
-- `9`：修改 ComfyUI 目录/Python 路径，保存到 `user_settings.json`，然后回到工作流选择
-- `q`：退出
-- 画师组合填 `0`：不注入任何画师串
+## 确认后实际发生什么
 
----
+1. 创建本次独立输出目录，读取 API 密钥；开始真实联网研究。每次新任务重新研究，不读取长期人物卡。
+2. 在同一 Session 中抽取人物事实并逐条核对，必要时按上限自动修正。换装事实与身份事实分离。
+3. 分别设计服装、场景动作、镜头关系，写成结构化稿，再做环境／光照和最终视觉协调。动作、可见部位、服装和镜头互相约束。
+4. 进行契约检查与条件式语义审查；只修问题字段及必要依赖。无法通过则保留本次数据并明确结束，保持你指定的人物。
+5. 文本通过后检查 ComfyUI；按所选权重、画风、采样器、seed 生成单张或五个候选。`finally` 恢复本次临时参数覆盖，避免影响同进程下一次调用。
+6. 本地评分、保留全部候选并复制最高分图到“程序选中图”，生成 `查看图片.html`。`last_entry.json` 记录本次选择。
 
-## 输出
+程序不会把候选自动发到任何平台。评分器只排序观感倾向，人物脸、四肢、复杂接触和背景仍需看图确认；评分器缺失时会返回 0 分并在同分中随机选择，不能当作正常美学选优。
 
-成功后会生成一张图和一个记录文件：
+## 与自动入口的区别
 
-```text
-output/_custom_entry/<YYYY-MM-DD>/<角色>_<主题>.png
-output/_custom_entry/<YYYY-MM-DD>/last_entry.json
+自动入口 `python pipeline_character.py` 多了“模型选人物／主题、规范标签、人物范围门控”和有限换人。自选入口使用你给出的名字／标签／版本，跳过自动选角和其门控，但仍有相同的人物事实预检、来源与版本约束、设计、写作、审查及出图。
+
+自动入口确认角色出道年不晚于 2021 时强制使用画风标签；其余人物按 50% 概率。自选菜单的明确选择优先，选“不加”就不加，指定组合就用该组合；“随机”沿用当前进程的画风策略，独立启动时通常是 50%。它不会为决定画风而额外联网查出道年。
+
+两者都只运行本地任务。公开版不包含定时触发、发布排期、账号认证、长期人物轮换、拒绝账本或跨次缓存。`output/` 的本次证据用于查看与复现，不自动成为下一次运行资料。
+
+## 参数化调用
+
+```python
+from custom_entry import generate
+
+result = generate(
+    "api", "Anima KSampler",
+    {"name_cn": "甘雨", "series_cn": "原神",
+     "name_en": "ganyu_(genshin_impact)", "series": "genshin_impact",
+     "version": "default appearance", "theme": "和服"},
+    variant="native", sampler=None, artist="random", route="deepseek",
+    count=1, seeds=[12345],
+)
+print(result.selected)
+print(result.candidates)
 ```
 
-`last_entry.json` 记录本次 workflow、模型、角色、画师、采样器、文件路径和美学分。
+`artist` 是兼容保留的内部参数名，表示画风组合：`"random"` 随机、`None` 不加、具体模型标签字符串则指定。采样器参数可以传 `config.KSAMPLER_COMBOS` 中的一项。不要在同一 Python 进程并发调用多个 `generate`：它会临时覆盖模块参数，当前设计是顺序执行；需要并行时使用各自进程与独立输出目录。
 
----
-
-## 和主链的区别
-
-| | `custom_entry.py` | `pipeline_character.py` |
-|---|---|---|
-| 选角 | 你手动指定 | DeepSeek 自动选角 |
-| 角色门控 | 无 | 有 |
-| 生成张数 | 1 张 | 多张候选后选优 |
-| 适合 | 已知角色、固定 seed、换采样器/画师 | 自动日更、探索角色 |
-
-因为不经过门控，模型不认识的角色也可能出“通用脸”。这是手工入口的预期行为。
-
----
-
-## 常见问题
-
-**`--list` 需要 key 吗？**  
-不需要。它只读取 config 里的组合列表。
-
-**`--dry-run` 为什么还要输入？**  
-它要验证菜单和参数收集流程，只是不调用 API、不出图。
-
-**报 401 / 鉴权失败？**  
-检查 `DEEPSEEK_API_KEY` 是否设置，以及是否有可用额度。
-
-**报 ComfyUI 连接失败？**  
-先运行：
-
-```powershell
-python ensure_comfyui.py --status
-```
-
-**`anima_flow` 报未知节点？**  
-安装提供 `AnimaFlowCorrectiveSampler` 的 ComfyUI 扩展，或改选模型 `1`（api 线路）。
-
-**中文名能直接当角色标签吗？**  
-不能。英文标签必须使用 Danbooru 标签；中文名只用于日志和文件名。
+结果主要在 `output/custom/`，自动入口在 `output/automatic/`。保留全部候选、实际提示词及提交图；改 seed 时先固定其他参数，再比较效果。每次重新运行菜单会重新生成文字，严格对照应复用已保存的实际提示词和采样设置。
