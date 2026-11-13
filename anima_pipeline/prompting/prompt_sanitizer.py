@@ -66,7 +66,7 @@ def sanitize_prompt_tags(tags, structured=None, theme=None, framing=None, max_ta
         canonical.append(str(framing))
     main_expressions = set()
     if st.get("_expression_policy"):
-        from framing_content import split_prompt_tags
+        from anima_pipeline.prompting.framing_content import split_prompt_tags
 
         main_expressions = {
             part.strip().lower()

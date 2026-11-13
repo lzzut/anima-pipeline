@@ -14,12 +14,12 @@ import re
 import secrets
 import unicodedata
 import uuid
-import anima_prompt_contracts as contracts
-import anima_fact_semantics as fact_semantics
-import anima_prompt_experiments as experiments
-import anima_visual_focus as visual_focus
-import anima_source_policy as source_policy
-import anima_character_variants as character_variants
+from anima_pipeline.prompting import anima_prompt_contracts as contracts
+from anima_pipeline.characters import anima_fact_semantics as fact_semantics
+from anima_pipeline.prompting import anima_prompt_experiments as experiments
+from anima_pipeline.prompting import anima_visual_focus as visual_focus
+from anima_pipeline.characters import anima_source_policy as source_policy
+from anima_pipeline.characters import anima_character_variants as character_variants
 
 SCHEMA = "anima_prompt_v2"
 CARD_SCHEMA = "character_fact_card_v2"
@@ -1644,7 +1644,7 @@ FOOTWEAR_TAG = re.compile(
 
 
 def cfg_for_checks():
-    import config
+    from anima_pipeline import config
 
     return config
 
@@ -4243,7 +4243,7 @@ class Session:
                 references=references,
             )
             if not card_is_approved(card):
-                from anima_character_card import approve_with_repairs
+                from anima_pipeline.characters.anima_character_card import approve_with_repairs
 
                 card = approve_with_repairs(self, card)
             self.audit["fact_card"] = card

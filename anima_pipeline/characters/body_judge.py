@@ -4,10 +4,10 @@ import json
 import os
 import httpx
 from PIL import Image
-import booru_client as bc
-import config as C
+from anima_pipeline.research import booru_client as bc
+from anima_pipeline import config as C
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = C.BASE
 _verdicts = {}
 SAMPLES = 3
 RUBRIC = (

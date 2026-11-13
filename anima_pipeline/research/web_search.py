@@ -18,7 +18,7 @@ DeepSeek 已提供独立的 Search / Fetch 接口：
 所有成功调用和预估费用会写入本次运行目录的 web_usage.json。
 
 用法：
-    from web_search import search, fetch_page, WEB_SEARCH_TOOL, WEB_FETCH_TOOL
+    from anima_pipeline.research.web_search import search, fetch_page, WEB_SEARCH_TOOL, WEB_FETCH_TOOL
     data = search("流萤 泳装 同人图")
     print(data["results"][0]["title"])
 

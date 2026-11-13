@@ -122,8 +122,8 @@ _COMPLETE_HEAD_SHOTS = {"collarbone-up", "chest-up", "head to chest", "bust", "b
 
 
 def _active_shots(framing):
-    from config import ANIMA_COMPLETE_HEAD_PRIORITY, ANIMA_FRAMING_CONTENT
-    from framing_content import framing_spec, FRAMING_GROUP_NAMES
+    from anima_pipeline.config import ANIMA_COMPLETE_HEAD_PRIORITY, ANIMA_FRAMING_CONTENT
+    from anima_pipeline.prompting.framing_content import framing_spec, FRAMING_GROUP_NAMES
 
     spec = framing_spec(framing)
     if spec and spec.get("group"):
@@ -178,7 +178,7 @@ def unique(values):
 
 def source_level(url, read_ok):
     """Classify provenance without treating a fetched page as verified fact."""
-    from anima_source_policy import exclusion_reason
+    from anima_pipeline.characters.anima_source_policy import exclusion_reason
 
     if exclusion_reason({"url": url}):
         return "excluded_noncanonical_source"
@@ -331,7 +331,7 @@ def prepare_character_references(references, name, series, name_en, max_chars=32
 
 def read_character_references(name, series, name_en, appearance_version=""):
     """Read appearance-focused and general sources once per character and version."""
-    from web_search import fetch_page, search
+    from anima_pipeline.research.web_search import fetch_page, search
 
     key = (
         (name, series, name_en, appearance_version)
@@ -342,7 +342,7 @@ def read_character_references(name, series, name_en, appearance_version=""):
         return prepare_character_references(_REFERENCE_CACHE[key], name, series, name_en)
     references, seen = ([], set())
     appearance_searched = False
-    from anima_source_policy import (
+    from anima_pipeline.characters.anima_source_policy import (
         appearance_rank,
         research_queries,
         distinct_pages,
@@ -608,8 +608,8 @@ def refine_framing(positive, negative, framing, channel=None):
             "full body, cowboy shot, head out of frame",
         ),
     }
-    from config import ANIMA_FRAMING_CONTENT
-    from framing_content import framing_spec, omit_framing_tags, FRAMING_GROUP_NAMES
+    from anima_pipeline.config import ANIMA_FRAMING_CONTENT
+    from anima_pipeline.prompting.framing_content import framing_spec, omit_framing_tags, FRAMING_GROUP_NAMES
 
     spec = framing_spec(shot)
     if spec and (ANIMA_FRAMING_CONTENT or spec.get("group")):
@@ -626,7 +626,7 @@ def refine_framing(positive, negative, framing, channel=None):
     close = shot in ("close-up", "portrait")
     split_tags = tags
     if ANIMA_FRAMING_CONTENT:
-        from framing_content import split_prompt_tags
+        from anima_pipeline.prompting.framing_content import split_prompt_tags
 
         split_tags = split_prompt_tags
     parts = []

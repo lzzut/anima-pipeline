@@ -2,8 +2,8 @@
 
 import copy
 import json
-import anima_prompt_contracts as contracts
-import anima_prompt_pipeline as chain
+from anima_pipeline.prompting import anima_prompt_contracts as contracts
+from anima_pipeline.prompting import anima_prompt_pipeline as chain
 
 MAX_FACT_REPAIR_ROUNDS = 2
 MAX_CHARACTER_REPLACEMENTS = 2
@@ -84,8 +84,8 @@ FACT_REVIEW_INSTRUCTION = (
 
 def supplement(name, series, name_en, missing, version):
     """Implementation details: see docs/ARCHITECTURE.md."""
-    from web_search import search, fetch_page
-    from prompt_refinement import source_level
+    from anima_pipeline.research.web_search import search, fetch_page
+    from anima_pipeline.prompting.prompt_refinement import source_level
 
     rows = []
     for query in chain.source_policy.research_queries(name, series, name_en, missing):
@@ -134,7 +134,7 @@ def supplement(name, series, name_en, missing, version):
 def new_session(cfg, call, *, audit_dir, reference_reader=None, supplement_reader=supplement):
     """建卡用的 Session：资料来源和生产流程相同。测试可以换 reference_reader、supplement_reader。"""
     if reference_reader is None:
-        from prompt_refinement import read_character_references as reference_reader
+        from anima_pipeline.prompting.prompt_refinement import read_character_references as reference_reader
     return chain.Session(
         cfg=cfg,
         call=call,

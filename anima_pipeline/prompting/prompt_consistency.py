@@ -7,7 +7,7 @@ Only plain, unambiguous eye-color clauses in five appearance fields can change.
 
 import copy
 import re
-from framing_content import split_prompt_tags
+from anima_pipeline.prompting.framing_content import split_prompt_tags
 
 _FIELDS = ("face_priority", "core_features", "appearance", "hybrid_features", "grounded_appearance")
 _COLORS = (

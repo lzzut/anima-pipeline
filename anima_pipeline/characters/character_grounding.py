@@ -24,7 +24,7 @@ EYE_RE = re.compile(
 def ground_character_features(st, name_en, sample=40):
     """Overwrite appearance/eye fields with observed Booru tags only."""
     try:
-        from booru_client import appearance_tags
+        from anima_pipeline.research.booru_client import appearance_tags
 
         tags = appearance_tags(name_en, sample=sample) or []
     except Exception as e:

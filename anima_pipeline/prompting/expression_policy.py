@@ -6,7 +6,7 @@ opaque groups remain untouched. No mood, negative tag, or retry is invented.
 
 import copy
 import re
-from framing_content import _split_top, _parse_piece, _canonical
+from anima_pipeline.prompting.framing_content import _split_top, _parse_piece, _canonical
 
 
 def character_directive():

@@ -31,14 +31,14 @@
 | 用途 | 当前适配基线 | 实际配置与边界 |
 |---|---|---|
 | 提示词生成与语义核对 | **DeepSeek V4 Flash 1017** | 默认 API 请求名 `deepseek-flash`，配置项 `DEEPSEEK_MODEL`。该名称是服务方别名，代码不能保证服务方永远将它固定到 1017；部署时请自行确认服务实际版本。 |
-| 绘图 | **Anima-2.9B-preview-v1** | `config.py` 中配置原生 bf16 和 int8 两种权重。文件名里的 `Anima` 是本仓库采用的模型名称；并非 Animagine XL。 |
+| 绘图 | **Anima-2.9B-preview-v1** | `anima_pipeline/config.py` 中配置原生 bf16 和 int8 两种权重。文件名里的 `Anima` 是本仓库采用的模型名称；并非 Animagine XL。 |
 | 候选美学排序 | **`kawaimasa/kawai-aesthetic-scorer-convnextv2`** | Transformers 图像分类器，本地加载；不向该模型服务上传图片。 |
 
 **使用本项目时请注意：提示词设计、混合标签写法、事实契约、修正指令、thinking 工具回填及 token 限额，均围绕 DeepSeek V4 Flash 1017 + Anima-2.9B 这两个模型优化。换用其他对话模型或绘图模型，可能需要重新设计 API 适配、提示词编译、预算和采样参数，不应视为直接兼容。** 美学模型也针对其训练偏好排序，不保证符合每个人的审美。
 
 Anima 适合将熟悉的角色／作品标签与较详细的英文自然语言描述混合使用。标签提供人物、主题、风格锚点，关系句描述服装结构、身体接触、空间和光照。本项目不设“通用最佳字数”，也不把更长文本、更多质量词或更深阴影视为画质提升。复杂器械接触、左右手精确分工、罕见视角、脸部还原和细小饰品仍受绘图模型能力及 seed 影响。
 
-当前人物选材上限为 **2026-07（含 7 月）**，按角色本人的首次公开登场日期处理；它不是“这个月以前所有人物模型都认识”的保证，也不禁止为已符合条件的人物查询较新的外观细节。来源版本、归属和明确排除的设计仍须一致。相关逻辑见 [`anima_source_policy.py`](anima_source_policy.py) 和 [`character_gate.py`](character_gate.py)。
+当前人物选材上限为 **2026-07（含 7 月）**，按角色本人的首次公开登场日期处理；它不是“这个月以前所有人物模型都认识”的保证，也不禁止为已符合条件的人物查询较新的外观细节。来源版本、归属和明确排除的设计仍须一致。相关逻辑见 [`anima_pipeline/characters/anima_source_policy.py`](anima_pipeline/characters/anima_source_policy.py) 和 [`anima_pipeline/characters/character_gate.py`](anima_pipeline/characters/character_gate.py)。
 
 ## 两条出图工作流
 
@@ -46,8 +46,8 @@ Anima 适合将熟悉的角色／作品标签与较详细的英文自然语言�
 
 | 线路 | 文件与节点 | 默认采样设置 |
 |---|---|---|
-| `api` | [`workflow_api.json`](workflow_api.json)，`KSampler` + `ModelSamplingAuraFlow` | 50 步，4 组组合可选或随机，见下表。 |
-| `anima_flow` | [`workflow_anima_flow.json`](workflow_anima_flow.json)，`AnimaFlowCorrectiveSampler` | 50 步，`cfg_mode=const`、`flow_solver=flow_euler`、`flow_schedule=flow_diffusers_linear_shift`、`flow_shift=3.0`。 |
+| `api` | [`workflows/workflow_api.json`](workflows/workflow_api.json)，`KSampler` + `ModelSamplingAuraFlow` | 50 步，4 组组合可选或随机，见下表。 |
+| `anima_flow` | [`workflows/workflow_anima_flow.json`](workflows/workflow_anima_flow.json)，`AnimaFlowCorrectiveSampler` | 50 步，`cfg_mode=const`、`flow_solver=flow_euler`、`flow_schedule=flow_diffusers_linear_shift`、`flow_shift=3.0`。 |
 
 `api` 的 4 组采样器组合为：
 
@@ -58,9 +58,37 @@ Anima 适合将熟悉的角色／作品标签与较详细的英文自然语言�
 | `er_sde` | `beta57` | 50 |
 | `uni_pc` | `ddim_uniform` | 50 |
 
-CFG 会被本次画风策略统一设置：启用画风标签时为 **3.7**，不启用时从 **3.5～5.0** 随机取值，两条工作流都如此。不要仅看工作流模板里原先存下的 CFG／Flow 参数；运行时会用 `config.py` 的设置覆盖，并另存实际提交的图。
+CFG 会被本次画风策略统一设置：启用画风标签时为 **3.7**，不启用时从 **3.5～5.0** 随机取值，两条工作流都如此。不要仅看工作流模板里原先存下的 CFG／Flow 参数；运行时会用 `anima_pipeline/config.py` 的设置覆盖，并另存实际提交的图。
 
 默认输出尺寸为 **1024 × 1536**。原生 bf16 与 int8 可以手动选择或随机选择，速度、显存和结果差异需在自己的硬件上确认。节点、采样器名称及调度器必须在你的 ComfyUI `/object_info` 中可用；特别是 Flow 自定义节点和 `beta57`，不能只凭 JSON 文件存在就认定安装完成。
+
+## 代码目录与入口
+
+Python 实现按职责组织在 `anima_pipeline/` 包中，根目录只保留两个兼容启动脚本。工作流模板集中在 `workflows/`，标签库和文档分别保留在 `data/`、`docs/`。
+
+```text
+anima-pipeline/
+├── custom_entry.py               # 自选出图兼容入口
+├── pipeline_character.py         # 自动选角兼容入口
+├── anima_pipeline/
+│   ├── __main__.py               # python -m anima_pipeline
+│   ├── config.py                 # 模型、画风、采样和提示词链配置
+│   ├── paths.py                  # 项目资源路径
+│   ├── cli/                      # 自选菜单、自动选角与流程串接
+│   ├── characters/               # 人物卡、事实核验、来源和选材门控
+│   ├── prompting/                # 设计、写作、审查、修正与提示词编译
+│   ├── research/                 # 联网搜索、抓页与标签查询
+│   └── rendering/                # ComfyUI、评分与图片画廊
+├── workflows/                    # api / anima_flow 两条 JSON 模板
+├── data/                         # 静态标签库
+├── docs/                         # 使用说明、架构说明与样图
+├── .env.example
+└── requirements*.txt
+```
+
+在仓库根目录可使用 `python -m anima_pipeline custom` 或 `python -m anima_pipeline auto`，下文的旧启动命令也继续有效。`.env`、`data/`、`workflows/` 和默认 `output/` 均按项目位置定位，不依赖启动终端当前所在的目录。若从其他目录启动，使用兼容脚本的绝对路径，例如 `python "你的项目目录/custom_entry.py" --list`；无需手动设置 `PYTHONPATH`。不要直接执行包内的 `.py` 文件。
+
+代码调用请使用包名，例如 `from anima_pipeline.cli.custom_entry import generate`、`from anima_pipeline import config`。根目录兼容脚本保留 `generate`、`run_auto` 等常用函数导出；修改参数和内部开发时，统一导入包内模块。
 
 ## 安装和本地配置
 
@@ -92,7 +120,7 @@ $env:DEEPSEEK_MODEL = 'deepseek-flash'
 $env:COMFY_URL = 'http://127.0.0.1:8188'
 ```
 
-也可以将 `.env.example` 复制为 `.env`，只填写 `DEEPSEEK_API_KEY`。**内置 `.env` 读取器只加载这个密钥；其他选项使用环境变量或修改 `config.py`。** `.env` 已在 `.gitignore` 排除，不要把真实值写进源码或截图。
+也可以将 `.env.example` 复制为 `.env`，只填写 `DEEPSEEK_API_KEY`。**内置 `.env` 读取器只加载这个密钥；其他选项使用环境变量或修改 `anima_pipeline/config.py`。** `.env` 已在 `.gitignore` 排除，不要把真实值写进源码或截图。
 
 默认由你启动 ComfyUI，程序只检查服务是否就绪。Windows 上若需要程序启动本地 ComfyUI，额外设置 `COMFY_DIR`、`COMFY_PYTHON`、`COMFY_AUTOSTART=1`；路径使用自己的安装位置。入口菜单的“9”也能修改本进程使用的路径。该功能只管理本地绘图服务，不创建操作系统计划任务；配置不写入长期用户设置。
 
@@ -157,7 +185,7 @@ flowchart TD
   N --> O[本地美学排序与图片画廊]
 ```
 
-1. **研究和写作分开。** `prompt_refinement.py` 搜索人物资料并读取正文，`anima_prompt_pipeline.Session.fact_card` 将可追溯引文变成结构化事实。网页只作不可信资料，不接收其中的操作指令；未查实的细节不伪装成官方设定。
+1. **研究和写作分开。** `anima_pipeline/prompting/prompt_refinement.py` 搜索人物资料并读取正文，`anima_pipeline.prompting.anima_prompt_pipeline.Session.fact_card` 将可追溯引文变成结构化事实。网页只作不可信资料，不接收其中的操作指令；未查实的细节不伪装成官方设定。
 2. **先核对事实，再设计。** 发型、瞳色、标志饰品、体型和原装分别存放，每条事实带来源、逐字引文、版本和可见部位。审查需判断引文是否支持该人物的该属性，不能只满足“这句话出现在网页里”。细分术语和数量／附着位置也需保真。
 3. **人物身份与换装分离。** 换装写作输入剔除原装披肩、手套等服装事实，保留有依据的身份特征；眼睛颜色必须写成 `gray-purple eyes` 等完整属性短语。衣服的配色、剪裁、材料、饰品相互配合，并结合人物资料，而非所有人物套一套服装。
 4. **让画面设计拥有明确职责。** 服装层确定设计，场景层确定一个可执行动作，构图层统一视角、裁切、人物位置和画面内背景。`pose` 说明身体／接触关系，`composition` 说明镜头；隐藏的脚、衣服背面等不能继续在其他字段里被要求展示。
@@ -173,7 +201,7 @@ flowchart TD
 
 默认开启分阶段设计时，画面文本修正上限是 **3 轮**；仍无法通过时停止，不提交 ComfyUI。常用设计／稳定写作／画面修正输出限额为 **32,000 token**，事实及语义审查为 **48,000 token**。仅当 API 明确报告输出预算耗尽，允许升到 **64,000 token** 恢复：事实预检范围一次，后续全部提示词阶段共享一次，不逐环节重置。上限包含模型推理与输出预算，不代表每次实际消耗这些 token。
 
-各阶段调用还受会话请求数上限约束，详见运行数据中的 `request_limit`、`role_budgets`、`requests` 和 `budget_recovery_scope`。固定价格不写死；实际开销取决于模型版本、来源可用性、工具费和修订次数。`pipeline_character.usage_summary()`、`web_search.web_usage_summary()` 可用于本进程核算，不能把输出上限直接当账单。
+各阶段调用还受会话请求数上限约束，详见运行数据中的 `request_limit`、`role_budgets`、`requests` 和 `budget_recovery_scope`。固定价格不写死；实际开销取决于模型版本、来源可用性、工具费和修订次数。`anima_pipeline.cli.pipeline_character.usage_summary()`、`anima_pipeline.research.web_search.web_usage_summary()` 可用于本进程核算，不能把输出上限直接当账单。
 
 ## 美学评分和五选一
 
@@ -204,17 +232,17 @@ output/custom 或 output/automatic/
 
 | 想调整的内容 | 优先阅读／修改 |
 |---|---|
-| 模型、采样组合、画风池、CFG、预算、季节和场景池 | [`config.py`](config.py) |
-| 自选菜单、一次运行的参数覆盖和恢复 | [`custom_entry.py`](custom_entry.py) |
-| 自动选角、联网工具循环、thinking 回填、会话串接 | [`pipeline_character.py`](pipeline_character.py) |
-| 来源查询、正文与可追溯事实 | [`prompt_refinement.py`](prompt_refinement.py)、[`web_search.py`](web_search.py) |
-| 人物预检、事实修正、有限换人 | [`anima_character_card.py`](anima_character_card.py) |
-| 版本／来源优先级、轻微外观分歧 | [`anima_source_policy.py`](anima_source_policy.py)、[`anima_character_variants.py`](anima_character_variants.py) |
-| 分阶段设计、条件审查、局部修正、编译、冻结 | [`anima_prompt_pipeline.py`](anima_prompt_pipeline.py) |
-| 术语保真、审查归因、可见性和字段契约 | [`anima_fact_semantics.py`](anima_fact_semantics.py)、[`anima_prompt_contracts.py`](anima_prompt_contracts.py) |
-| 动作／表情／镜头最终文字协调 | [`anima_visual_focus.py`](anima_visual_focus.py) |
-| 实际采样图、候选生成、评分与本地选图 | [`comfy_runner.py`](comfy_runner.py) |
-| 图片画廊 | [`anima_prompt_storage.py`](anima_prompt_storage.py) |
+| 模型、采样组合、画风池、CFG、预算、季节和场景池 | [`anima_pipeline/config.py`](anima_pipeline/config.py) |
+| 自选菜单、一次运行的参数覆盖和恢复 | [`anima_pipeline/cli/custom_entry.py`](anima_pipeline/cli/custom_entry.py) |
+| 自动选角、联网工具循环、thinking 回填、会话串接 | [`anima_pipeline/cli/pipeline_character.py`](anima_pipeline/cli/pipeline_character.py) |
+| 来源查询、正文与可追溯事实 | [`anima_pipeline/prompting/prompt_refinement.py`](anima_pipeline/prompting/prompt_refinement.py)、[`anima_pipeline/research/web_search.py`](anima_pipeline/research/web_search.py) |
+| 人物预检、事实修正、有限换人 | [`anima_pipeline/characters/anima_character_card.py`](anima_pipeline/characters/anima_character_card.py) |
+| 版本／来源优先级、轻微外观分歧 | [`anima_pipeline/characters/anima_source_policy.py`](anima_pipeline/characters/anima_source_policy.py)、[`anima_pipeline/characters/anima_character_variants.py`](anima_pipeline/characters/anima_character_variants.py) |
+| 分阶段设计、条件审查、局部修正、编译、冻结 | [`anima_pipeline/prompting/anima_prompt_pipeline.py`](anima_pipeline/prompting/anima_prompt_pipeline.py) |
+| 术语保真、审查归因、可见性和字段契约 | [`anima_pipeline/characters/anima_fact_semantics.py`](anima_pipeline/characters/anima_fact_semantics.py)、[`anima_pipeline/prompting/anima_prompt_contracts.py`](anima_pipeline/prompting/anima_prompt_contracts.py) |
+| 动作／表情／镜头最终文字协调 | [`anima_pipeline/prompting/anima_visual_focus.py`](anima_pipeline/prompting/anima_visual_focus.py) |
+| 实际采样图、候选生成、评分与本地选图 | [`anima_pipeline/rendering/comfy_runner.py`](anima_pipeline/rendering/comfy_runner.py) |
+| 图片画廊 | [`anima_pipeline/rendering/anima_prompt_storage.py`](anima_pipeline/rendering/anima_prompt_storage.py) |
 
 画风菜单统一使用“画风标签／画风组合”。内部保留 `ARTIST_*`、`artist_roll` 等历史配置和函数名以保持调用兼容，原始 `@...` 模型标签与负面标签 `artist name` 也按模型词法保留；改称呼不等于重写这些 token。
 

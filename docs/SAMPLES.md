@@ -62,7 +62,7 @@
 
 ## 自选入口：同一提示词五个 seed
 
-这次运行由 `custom_entry.py` 完成，指定春丽／运动／DeepSeek 场景来源／int8／`api`，采样为 `euler + sgm_uniform`、50 步、CFG 3.7。实际画风标签为 `@uriah-oyu, (@mokoiscat:0.65)`。五张保持正负提示词、权重、采样器、画风和尺寸一致，只更换 seed；没有为每张重跑一遍 LLM 写作。
+这次运行由自选入口 `custom_entry.py` 完成（当前实现位于 [`anima_pipeline/cli/custom_entry.py`](../anima_pipeline/cli/custom_entry.py)），指定春丽／运动／DeepSeek 场景来源／int8／`api`，采样为 `euler + sgm_uniform`、50 步、CFG 3.7。实际画风标签为 `@uriah-oyu, (@mokoiscat:0.65)`。五张保持正负提示词、权重、采样器、画风和尺寸一致，只更换 seed；没有为每张重跑一遍 LLM 写作。
 
 ![真实自选入口五个 seed 与最高美学分选图](samples/custom_five_seeds.jpg)
 

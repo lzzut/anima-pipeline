@@ -6,7 +6,7 @@
 
 ## 凭据
 
-DeepSeek 密钥从 `DEEPSEEK_API_KEY` 环境变量或本机 `.env` 读取，不输出密钥，不写入任务元数据。`.env.example` 只有占位值。可选 Tavily 搜索密钥也从环境变量读取。不要把密钥放进 `config.py`、命令截图、问题附件或工作流 JSON；不要提交登录 Cookie、会话文件或本地设置。
+DeepSeek 密钥从 `DEEPSEEK_API_KEY` 环境变量或本机 `.env` 读取，不输出密钥，不写入任务元数据。`.env.example` 只有占位值。可选 Tavily 搜索密钥也从环境变量读取。不要把密钥放进 `anima_pipeline/config.py`、命令截图、问题附件或工作流 JSON；不要提交登录 Cookie、会话文件或本地设置。
 
 改变 `DEEPSEEK_BASE_URL` 会改变密钥及 LLM 输入的接收方，使用自己信任的服务。不要将本地 ComfyUI 无认证端口直接暴露到公网；默认地址为 `127.0.0.1`。
 

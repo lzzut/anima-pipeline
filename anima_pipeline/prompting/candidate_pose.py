@@ -1,7 +1,7 @@
 """Production-only candidate composition reconciliation."""
 
 import re
-from framing_content import _split_top
+from anima_pipeline.prompting.framing_content import _split_top
 
 _HEAD_POSTURE_PATTERNS = {
     "tilt": re.compile(

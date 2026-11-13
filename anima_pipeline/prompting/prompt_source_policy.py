@@ -1,6 +1,6 @@
 """Build rendering features from supplied selections without external backfill."""
 
-from framing_content import split_prompt_tags
+from anima_pipeline.prompting.framing_content import split_prompt_tags
 
 
 def merge_selected_features(structured, limit=12):

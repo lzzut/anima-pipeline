@@ -5,7 +5,7 @@ import copy
 import json
 import re
 import unicodedata
-import anima_fact_semantics as fact_semantics
+from anima_pipeline.characters import anima_fact_semantics as fact_semantics
 
 SCENE_VIEWS = {"front", "three_quarter", "side", "rear"}
 LOOKING_BACK = re.compile(

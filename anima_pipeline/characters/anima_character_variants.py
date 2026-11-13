@@ -41,7 +41,7 @@ def review_instructions():
 
 
 def make_pool(card, alternatives):
-    import anima_prompt_pipeline as chain
+    from anima_pipeline.prompting import anima_prompt_pipeline as chain
 
     errors = []
     if not isinstance(alternatives, list):

@@ -2,7 +2,7 @@
 
 import copy
 import json
-import anima_prompt_contracts as contracts
+from anima_pipeline.prompting import anima_prompt_contracts as contracts
 
 EDITABLE_FIELDS = ("pose", "expression", "composition")
 
@@ -48,7 +48,7 @@ def instructions():
 
 
 def refine(session, draft, *, theme, channel, brief_text=""):
-    from anima_prompt_pipeline import (
+    from anima_pipeline.prompting.anima_prompt_pipeline import (
         DESIGN_FIELDS,
         NeedsReview,
         action_camera_instructions,
@@ -97,7 +97,7 @@ def refine(session, draft, *, theme, channel, brief_text=""):
     ):
         raise NeedsReview("visual focus must return a candidate array")
     updates = response["candidates"]
-    from anima_prompt_pipeline import unwrap_editable_fields
+    from anima_pipeline.prompting.anima_prompt_pipeline import unwrap_editable_fields
 
     unwrap_editable_fields(updates)
     if len(updates) != len(original):

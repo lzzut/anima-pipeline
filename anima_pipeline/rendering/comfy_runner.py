@@ -4,7 +4,7 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 import json, random, re, shutil
 from comfyui_xy import ComfyUiClient
-from config import (
+from anima_pipeline.config import (
     COMFY_URL,
     FALLBACK_NEGATIVE,
     WORKFLOW_SETTINGS,
@@ -46,7 +46,7 @@ from config import (
     DEEPSEEK_BASE_URL,
     DEEPSEEK_MODEL,
 )
-from prompt_style import style_directive
+from anima_pipeline.prompting.prompt_style import style_directive
 
 client = ComfyUiClient(url=COMFY_URL)
 CANDIDATE_COUNT = 5
@@ -172,7 +172,7 @@ def identity_judge(image_path, name_en, verbose=True):
     try:
         import base64, io, httpx
         from PIL import Image
-        from booru_client import appearance_tags
+        from anima_pipeline.research.booru_client import appearance_tags
 
         _feat = [t.replace("_", " ") for t in appearance_tags(name_en, sample=40) or []][:12]
         canon = f"{name_en} 的官方/二创高频特征：{', '.join(_feat)}" if _feat else name_en
@@ -249,7 +249,7 @@ def _eye_abnormal(image_path):
         from PIL import Image
         import base64, io, json as _json
         import httpx
-        from config import DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL
+        from anima_pipeline.config import DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL
 
         img = Image.open(image_path).convert("RGB")
         w, h = img.size
@@ -522,7 +522,7 @@ def format_prompt(workflow, positive, negative, identity=None, theme=None, artis
     · 其他工作流：保持原样（Illustrious 系与 Anima/Z-Image 都是质量词前置）
     """
     if workflow in ("api", "anima_flow") and (identity or {}).get("anima_prompt_contract"):
-        from anima_prompt_pipeline import finalize_render
+        from anima_pipeline.prompting.anima_prompt_pipeline import finalize_render
 
         return finalize_render(positive, negative, identity, artist_combo)
     st = WORKFLOW_SETTINGS.get(workflow, {})
@@ -539,7 +539,7 @@ def format_prompt(workflow, positive, negative, identity=None, theme=None, artis
         if ANIMA_EXTRA_POSITIVE:
             positive = f"{positive}, {ANIMA_EXTRA_POSITIVE}"
     try:
-        from config import FRAMING_NEGATIVE_WORKFLOWS as _fpw, NOVA_FRAMING_NEGATIVE as _nfn
+        from anima_pipeline.config import FRAMING_NEGATIVE_WORKFLOWS as _fpw, NOVA_FRAMING_NEGATIVE as _nfn
     except Exception:
         _fpw, _nfn = ((), "")
     if workflow in _fpw and _nfn:
@@ -556,14 +556,14 @@ def format_prompt(workflow, positive, negative, identity=None, theme=None, artis
     if st.get("negative"):
         negative = _dedup_csv(f"{st['negative']}, {negative}")
     try:
-        from config import LIMB_POSE_NEGATIVE as _lpn, LIMB_POSE_WORKFLOWS as _lpw
+        from anima_pipeline.config import LIMB_POSE_NEGATIVE as _lpn, LIMB_POSE_WORKFLOWS as _lpw
     except Exception:
         _lpn, _lpw = ("", ())
     if _lpn and workflow in _lpw:
         negative = _dedup_csv(f"{negative}, {_lpn}")
     if workflow == "animagine_xl":
         try:
-            from config import ANIMAGINE_FRAMING_NEGATIVE as _afn
+            from anima_pipeline.config import ANIMAGINE_FRAMING_NEGATIVE as _afn
         except Exception:
             _afn = ""
         if _afn:
@@ -571,14 +571,14 @@ def format_prompt(workflow, positive, negative, identity=None, theme=None, artis
     if EXTRA_NEGATIVE:
         negative = _dedup_csv(f"{negative}, {EXTRA_NEGATIVE}")
     try:
-        from config import BANNED_THEME_NEGATIVE as _btn
+        from anima_pipeline.config import BANNED_THEME_NEGATIVE as _btn
 
         if _btn:
             negative = _dedup_csv(f"{negative}, {_btn}")
     except Exception:
         pass
     try:
-        from config import LINE_EXTRA_NEGATIVES as _line_neg
+        from anima_pipeline.config import LINE_EXTRA_NEGATIVES as _line_neg
 
         _extra_neg = (_line_neg or {}).get(workflow, "")
         if _extra_neg:
@@ -594,7 +594,7 @@ def format_prompt(workflow, positive, negative, identity=None, theme=None, artis
     if workflow in ("api", "anima_flow"):
         close_shots = {"close-up", "portrait"}
         near_markers = set(close_shots)
-        from config import ANIMA_COMPLETE_HEAD_PRIORITY
+        from anima_pipeline.config import ANIMA_COMPLETE_HEAD_PRIORITY
 
         if ANIMA_COMPLETE_HEAD_PRIORITY:
             near_markers.update(("collarbone-up", "chest-up"))
@@ -728,7 +728,7 @@ def _run_once(
         ckpt_name,
     )
     if audit_dir:
-        from anima_prompt_pipeline import immutable_json, sha
+        from anima_pipeline.prompting.anima_prompt_pipeline import immutable_json, sha
 
         immutable_json(
             audit_dir,
@@ -861,7 +861,7 @@ def generate_images(
                 f"  [背景清理] 主题「{theme}」删掉 {len(removed_bg)} 段不着调背景：{removed_bg[0][:40]}…"
             )
         try:
-            from config import EYE_ENHANCE_WORKFLOWS as _eye_wfs
+            from anima_pipeline.config import EYE_ENHANCE_WORKFLOWS as _eye_wfs
         except Exception:
             _eye_wfs = ("animagine_xl",)
         if workflow in _eye_wfs:
@@ -874,7 +874,7 @@ def generate_images(
         )
         if workflow in ("animagine_xl", "nova_xl"):
             try:
-                from config import (
+                from anima_pipeline.config import (
                     framing_theme_is_full as _fr_full,
                     SDXL_FRAMING_POSITIVE as _fr_pos,
                     SDXL_FRAMING_NEGATIVE as _fr_neg,
@@ -916,7 +916,7 @@ def generate_images(
                     artist_combo=artist_combo,
                 )
                 prepared_variants.append((variant_positive, variant_negative))
-            import config as _same_cfg
+            from anima_pipeline import config as _same_cfg
 
             if getattr(_same_cfg, "ANIMA_SAME_PROMPT_SEEDS", False):
                 prepared_variants = prepared_variants[:1]
@@ -934,7 +934,7 @@ def generate_images(
             )
             _image_dir = output_dir
             if _v2:
-                from anima_prompt_pipeline import immutable_json, sha, token_diagnostics
+                from anima_pipeline.prompting.anima_prompt_pipeline import immutable_json, sha, token_diagnostics
 
                 _image_dir = os.path.join(
                     output_dir, "图片", "全部候选图", item.get("channel", str(i + 1))
@@ -942,7 +942,7 @@ def generate_images(
                 os.makedirs(_image_dir, exist_ok=True)
             cand_path = os.path.join(_image_dir, f"{tag}_cand_{i + 1:02d}_{c + 1}_seed{seed}.png")
             if _v2:
-                from config import ANIMA_TOKENIZER_ROOT
+                from anima_pipeline.config import ANIMA_TOKENIZER_ROOT
 
                 _prompt_records[cand_path] = immutable_json(
                     os.path.join(output_dir, "数据", "候选记录"),
@@ -1100,7 +1100,7 @@ def generate_images(
         selected_path = os.path.join(_selected_dir, f"{tag}_selected_{i + 1:02d}.png")
         shutil.copy2(best_path, selected_path)
         selected_files.append(selected_path)
-    from anima_prompt_pipeline import immutable_json
+    from anima_pipeline.prompting.anima_prompt_pipeline import immutable_json
 
     immutable_json(
         os.path.join(output_dir, "数据"),
@@ -1118,7 +1118,7 @@ def generate_images(
             if isinstance(p, dict)
         )
     ):
-        from anima_prompt_storage import write_gallery
+        from anima_pipeline.rendering.anima_prompt_storage import write_gallery
 
         write_gallery(output_dir, all_cands, selected_files)
     return GenResult(selected_files, candidates=all_cands)

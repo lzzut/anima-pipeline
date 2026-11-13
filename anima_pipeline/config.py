@@ -1,12 +1,13 @@
 import os
 import re
-from prompt_sanitizer import sanitize_prompt_tags
+from anima_pipeline.paths import PROJECT_ROOT, WORKFLOW_DIR
+from anima_pipeline.prompting.prompt_sanitizer import sanitize_prompt_tags
 
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
 COMFY_URL = os.environ.get("COMFY_URL", "http://127.0.0.1:8188")
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = str(PROJECT_ROOT)
 ANIMA_PROMPT_V2 = True
 ANIMA_MATERIAL_CUTOFF = "2026-07"
 ANIMA_PROMPT_EXPERIMENT = "baseline"
@@ -25,8 +26,8 @@ ANIMA_REPAIR_MAX_OUTPUT_TOKENS = 32000
 ANIMA_SEMANTIC_REVIEW = "conditional"
 ANIMA_PROMPT_MAX_CHARS = 16000
 ANIMA_TOKENIZER_ROOT = os.environ.get("ANIMA_TOKENIZER_ROOT", "")
-WORKFLOW_PATH = os.path.join(BASE, "workflow_api.json")
-WORKFLOW_ANIMA_FLOW_PATH = os.path.join(BASE, "workflow_anima_flow.json")
+WORKFLOW_PATH = str(WORKFLOW_DIR / "workflow_api.json")
+WORKFLOW_ANIMA_FLOW_PATH = str(WORKFLOW_DIR / "workflow_anima_flow.json")
 CLIP_SKIP = -2
 WORKFLOW_POOL = ["api", "anima_flow"]
 ANIMA_UNET_INT8 = "Anima-2.9B-preview-v1_int8_convrot.safetensors"
@@ -713,7 +714,7 @@ def char_eye_anchor(name_en, simple=None):
 
     if simple is None:
         simple = CHAR_EYE_SIMPLE
-    p = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "character_eyes.json")
+    p = _os.path.join(BASE, "character_eyes.json")
     v = None
     if _os.path.exists(p):
         try:
@@ -1256,7 +1257,7 @@ def build_reference_prompt(
     channel=None,
 ):
     """Implementation details: see docs/ARCHITECTURE.md."""
-    from framing_content import prompt_framing
+    from anima_pipeline.prompting.framing_content import prompt_framing
 
     framing = prompt_framing(framing)
     st = structured or {}
@@ -1316,7 +1317,7 @@ def build_reference_prompt(
             v = str(st.get(k) or "").strip()
             if v:
                 if _content_spec:
-                    from framing_content import split_prompt_tags
+                    from anima_pipeline.prompting.framing_content import split_prompt_tags
 
                     _vals = split_prompt_tags(v)
                 else:
@@ -1419,7 +1420,7 @@ def build_reference_prompt(
                 _uniq.append(_x.strip())
         return ", ".join(_uniq[:SHORT_PROMPT_MAX_TAGS])
     try:
-        from booru_client import appearance_tags
+        from anima_pipeline.research.booru_client import appearance_tags
 
         _feat_cap = 12 if PROMPT_QUALITY_V2 else 18
         feats = [t.replace("_", " ") for t in appearance_tags(name_en, sample=40) or []][:_feat_cap]

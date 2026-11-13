@@ -12,12 +12,12 @@ ensure_comfyui.py — ComfyUI 自动拉起 / 健康检查
     这里默认不带 --lowvram（显存不够时 ComfyUI 自己会按需 offload）。
 
 用法：
-    python ensure_comfyui.py          # 检查，必要时拉起，等到就绪
-    python ensure_comfyui.py --status # 只看状态，不拉起
-    python ensure_comfyui.py --stop   # 停掉本模块拉起的 ComfyUI
+    python -m anima_pipeline.rendering.ensure_comfyui          # 检查，必要时拉起，等到就绪
+    python -m anima_pipeline.rendering.ensure_comfyui --status # 只看状态，不拉起
+    python -m anima_pipeline.rendering.ensure_comfyui --stop   # 停掉本模块拉起的 ComfyUI
 
 在代码里：
-    from ensure_comfyui import ensure_comfyui
+    from anima_pipeline.rendering.ensure_comfyui import ensure_comfyui
     ensure_comfyui()        # 失败会抛 RuntimeError
 """
 
@@ -27,7 +27,8 @@ import subprocess
 import sys
 import time
 import httpx
-from config import (
+from anima_pipeline.config import (
+    BASE,
     COMFY_URL,
     COMFY_DIR,
     COMFY_PYTHON,
@@ -36,9 +37,9 @@ from config import (
     COMFY_AUTOSTART,
 )
 
-PID_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comfyui.pid")
-LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comfyui_server.log")
-ERR_LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comfyui_server.err.log")
+PID_FILE = os.path.join(BASE, "comfyui.pid")
+LOG_FILE = os.path.join(BASE, "comfyui_server.log")
+ERR_LOG_FILE = os.path.join(BASE, "comfyui_server.err.log")
 
 
 def is_ready(timeout=4.0):

@@ -1,6 +1,6 @@
 # 自选出图系统
 
-入口是仓库根目录的 `custom_entry.py`。它使用与自动本地出图相同的 DeepSeek V4 Flash 1017 → Anima-2.9B 提示词链；由你指定人物、主题和绘图参数，程序负责查资料、预检、设计、审查、采样及本地选图。
+入口实现位于 [`anima_pipeline/cli/custom_entry.py`](../anima_pipeline/cli/custom_entry.py)，仓库根目录的 `custom_entry.py` 保留为兼容启动脚本。它使用与自动本地出图相同的 DeepSeek V4 Flash 1017 → Anima-2.9B 提示词链；由你指定人物、主题和绘图参数，程序负责查资料、预检、设计、审查、采样及本地选图。
 
 ## 启动
 
@@ -9,6 +9,8 @@ python custom_entry.py --list
 python custom_entry.py --dry-run
 python custom_entry.py
 ```
+
+以上命令在仓库根目录运行。也可使用统一包入口：`python -m anima_pipeline custom --list`、`python -m anima_pipeline custom --dry-run`、`python -m anima_pipeline custom`。从其他目录启动时，传入根目录兼容脚本的绝对路径；不要直接运行 `anima_pipeline/cli/` 内的脚本。`.env`、工作流、标签数据和默认 `output/` 仍定位到项目目录。
 
 `--list` 只列工作流、采样器、画风组合及主题，不需要密钥或 ComfyUI。`--dry-run` 会走完菜单并打印选择，不调用 DeepSeek、不检查或启动 ComfyUI、不出图；它不能证明模型、节点、网络或评分器已经配置正确。
 
@@ -97,7 +99,8 @@ python custom_entry.py
 ## 参数化调用
 
 ```python
-from custom_entry import generate
+from anima_pipeline.cli.custom_entry import generate
+from anima_pipeline import config
 
 result = generate(
     "api", "Anima KSampler",

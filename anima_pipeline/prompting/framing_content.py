@@ -172,7 +172,7 @@ def framing_spec(framing):
         return spec
     spec = copy.deepcopy(_SPECS.get(key))
     if spec and key in ("close-up", "portrait"):
-        from config import ANIMA_COMPLETE_HEAD_PRIORITY
+        from anima_pipeline.config import ANIMA_COMPLETE_HEAD_PRIORITY
 
         if ANIMA_COMPLETE_HEAD_PRIORITY:
             spec["complete_head_priority"] = True
@@ -306,7 +306,7 @@ def _split_top(value):
 
 def content_enabled(workflow, framing):
     """Keep the feature scoped to known crops in the two Anima workflows."""
-    from config import ANIMA_FRAMING_CONTENT
+    from anima_pipeline.config import ANIMA_FRAMING_CONTENT
 
     return bool(
         ANIMA_FRAMING_CONTENT

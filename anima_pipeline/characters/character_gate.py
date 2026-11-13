@@ -21,8 +21,8 @@ import csv
 import json
 import os
 import re
-import config as _cfg
-from config import (
+from anima_pipeline import config as _cfg
+from anima_pipeline.config import (
     WORKFLOW_MODEL_INFO,
     CHARACTER_MIN_POSTS,
     SERIES_MIN_POSTS,
@@ -31,7 +31,7 @@ from config import (
     GATE_WEB_MAX_RESULTS,
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = _cfg.BASE
 TAG_CSV = os.path.join(BASE_DIR, "data", "danbooru_tags.csv")
 CAT_CHARACTER = "4"
 CAT_COPYRIGHT = "3"
@@ -304,7 +304,7 @@ def _web_years(queries, key, must_mention=None):
     years, dates, evidence, sources = ([], [], [], [])
     ok = False
     try:
-        from web_search import search as ws
+        from anima_pipeline.research.web_search import search as ws
 
         for q in queries:
             res = ws(q, max_results=GATE_WEB_MAX_RESULTS)
@@ -362,7 +362,7 @@ def web_character_info(name_en, series_en=None, name_cn=None, series_cn=None):
     返回 {"year", "evidence", "ok", "scope", "sources"}
     """
     try:
-        from booru_client import character_first_post_date
+        from anima_pipeline.research.booru_client import character_first_post_date
 
         _first = character_first_post_date(name_en)
         if _first:
@@ -421,17 +421,17 @@ def accepts(
     if not info:
         return (False, f"未知工作流 {workflow}")
     try:
-        import config as _c3
+        from anima_pipeline import config as _c3
 
         if str(name_en) in tuple(getattr(_c3, "CHAR_BAN_LIST", ()) or ()):
             return (False, f"手工禁用：{name_en}（用户指定）")
     except Exception:
         pass
     try:
-        import config as _c2
+        from anima_pipeline import config as _c2
 
         if theme and _c2.is_revealing_theme(theme):
-            import body_judge as _bj
+            from anima_pipeline.characters import body_judge as _bj
 
             _v = _bj.judge(name_en, verbose=bool(verbose))
             if _v and _v.get("childlike") is True:
@@ -439,7 +439,7 @@ def accepts(
                     False,
                     f"体型×主题拒绝：{name_en} 为儿童/萝莉体型（VLM {_v.get('votes')}：{_v.get('reason')}）且主题「{theme}」属暴露类 → 舍弃此人物",
                 )
-            import booru_client as _bc
+            from anima_pipeline.research import booru_client as _bc
 
             _tags = tuple(getattr(_c2, "BANNED_BODY_TAGS", ()) or ())
             _thr = float(getattr(_c2, "BANNED_BODY_RATIO", 0.03))
@@ -522,7 +522,7 @@ def accepts(
                 f"作品 {series_en} 投稿 {ser['posts']} < {SERIES_MIN_POSTS}，该模型大概率没学过这个作品的画风",
             )
     try:
-        import config as _cp
+        from anima_pipeline import config as _cp
 
         _yr_p = 0
         try:
@@ -589,7 +589,7 @@ def eligible_workflows(
     check_web=True,
 ):
     """返回该角色能通过的 [(workflow, why), ...]（按 WORKFLOW_POOL 顺序）"""
-    from config import WORKFLOW_POOL
+    from anima_pipeline.config import WORKFLOW_POOL
 
     pool = [w for w in pool or WORKFLOW_POOL if w not in exclude]
     ok, reasons = ([], [])
@@ -629,7 +629,7 @@ def choose_workflow_for(
 ):
     """Implementation details: see docs/ARCHITECTURE.md."""
     import random
-    from config import WORKFLOW_MODEL_INFO
+    from anima_pipeline.config import WORKFLOW_MODEL_INFO
 
     ok, reasons = eligible_workflows(
         name_en,

@@ -6,8 +6,8 @@ it never decides that a paraphrase is wrong. Meaning is still checked by the LLM
 
 import re
 import unicodedata
-import anima_source_policy as source_policy
-import anima_character_variants as character_variants
+from anima_pipeline.characters import anima_source_policy as source_policy
+from anima_pipeline.characters import anima_character_variants as character_variants
 
 REVIEW_POLICY = "source_meaning_v3_single_state"
 

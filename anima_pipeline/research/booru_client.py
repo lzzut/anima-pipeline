@@ -19,7 +19,7 @@ booru_client.py — Danbooru 数据的本机可用替代通道
      → 可查标签的中文名、分类、wiki 描述（角色设定/服装细节）
 
 用法：
-    from booru_client import lookup, search_tags, safebooru_count, related_tags
+    from anima_pipeline.research.booru_client import lookup, search_tags, safebooru_count, related_tags
     info = lookup("firefly_(honkai:_star_rail)")
 """
 
@@ -28,12 +28,11 @@ import os
 import re
 import time
 import httpx
+from anima_pipeline.paths import DATA_DIR
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 HEADERS = {"User-Agent": USER_AGENT, "Accept": "application/json,*/*"}
-TAG_INDEX_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data", "danbooru_tags.csv"
-)
+TAG_INDEX_FILE = str(DATA_DIR / "danbooru_tags.csv")
 TAG_INDEX_URLS = [
     "https://raw.githubusercontent.com/DominikDoom/a1111-sd-webui-tagcomplete/master/tags/danbooru.csv",
     "https://ghproxy.net/https://raw.githubusercontent.com/DominikDoom/a1111-sd-webui-tagcomplete/master/tags/danbooru.csv",
@@ -259,7 +258,7 @@ def character_first_post_date(character_tag):
             elif posts:
                 oldest = min(posts, key=lambda p: p.get("id") or 0)
                 try:
-                    from web_search import fetch_page
+                    from anima_pipeline.research.web_search import fetch_page
 
                     url = "https://safebooru.org/index.php?page=post&s=view&id=%s" % oldest.get(
                         "id"
